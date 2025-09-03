@@ -1,14 +1,14 @@
 # JSDoc Press
 
-- **Purpose:** A minimal, clean JSDoc HTML template to use via `opts.template`.
+**Purpose:** A minimal, clean JSDoc HTML template to use via `opts.template`.
 
 ## Setup
 
-- Add JSDoc and this template to your project:
+Add JSDoc and this template to your project:
   - `npm install --save-dev jsdoc`
-  - `npm install --save-dev jsdoc-template-boilerplate`
+  - `npm install --save-dev github:bemky/jsdoc-press`
 
-- In your `jsdoc.json`:
+In your `jsdoc.json`:
   ```json
   {
     "source": { "include": ["src"] },
@@ -40,7 +40,7 @@ Want extras (search, source links, custom header/footer, partials per-kind)? I c
 
 ## Template Settings
 
-- Inject custom JavaScript and CSS on every page via `templates.javascripts` and `templates.stylesheets` in your `jsdoc.json`:
+Inject custom JavaScript and CSS on every page via `templates.javascripts` and `templates.stylesheets` in your `jsdoc.json`:
   ```json
   {
     "opts": { "template": "node_modules/jsdoc-template-boilerplate" },
@@ -60,21 +60,21 @@ Want extras (search, source links, custom header/footer, partials per-kind)? I c
     }
   }
   ```
-  - Scripts render as `<script src="..."></script>` near the end of `body`.
-  - Styles render as `<link rel="stylesheet" href="..." />` in `head`.
-  - `cleanOutput` (default true): when enabled, the template wipes the destination folder before generating new files.
-  - `showKindIcons` (default true): when enabled, kinds render as compact icons (e.g., `F` for function, `C` for class) in the sidebar and on symbol pages.
-  - `footer` (boolean|string, default true):
-    - `true`: renders the default footer text.
-    - `false`: hides the footer entirely.
-    - `"<html>..."` string: renders the provided string as HTML in the footer.
+ - Scripts render as `<script src="..."></script>` near the end of `body`.
+ - Styles render as `<link rel="stylesheet" href="..." />` in `head`.
+ - `cleanOutput` (default true): when enabled, the template wipes the destination folder before generating new files.
+ - `showKindIcons` (default true): when enabled, kinds render as compact icons (e.g., `F` for function, `C` for class) in the sidebar and on symbol pages.
+ - `footer` (boolean|string, default true):
+   - `true`: renders the default footer text.
+   - `false`: hides the footer entirely.
+   - `"<html>..."` string: renders the provided string as HTML in the footer.
 
-  - `templates` (string, optional): Path to a directory containing template overrides. When set, the renderer first checks this folder for a requested partial before falling back to the built-in `tmpl/`.
-    - Mirrors the default structure (for example: `doc/summary.tmpl`, `layout.tmpl`, `navitem.tmpl`).
-    - Relative paths resolve against your JSDoc working directory (env.pwd / process.cwd()); absolute paths are supported.
-    - All standard helpers are available inside overrides (e.g., `kindLabel`, `htmlsafe`, `highlight`, `linkTo`, `find`, `findAll`).
+ - `templates` (string, optional): Path to a directory containing template overrides. When set, the renderer first checks this folder for a requested partial before falling back to the built-in `tmpl/`.
+   - Mirrors the default structure (for example: `doc/summary.tmpl`, `layout.tmpl`, `navitem.tmpl`).
+   - Relative paths resolve against your JSDoc working directory (env.pwd / process.cwd()); absolute paths are supported.
+   - All standard helpers are available inside overrides (e.g., `kindLabel`, `htmlsafe`, `highlight`, `linkTo`, `find`, `findAll`).
 
-  Local paths (relative or absolute filesystem paths) are copied into the docs output under `assets/scripts/` and `assets/styles/`, and the corresponding URLs are rewritten. Remote URLs are used as-is.
+Local paths (relative or absolute filesystem paths) are copied into the docs output under `assets/scripts/` and `assets/styles/`, and the corresponding URLs are rewritten. Remote URLs are used as-is.
 
 ## Development
 
