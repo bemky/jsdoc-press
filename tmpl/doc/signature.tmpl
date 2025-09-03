@@ -1,0 +1,52 @@
+<?//
+    Options
+    ----
+    memberof: boolean
+    arguments: boolean
+    returns: boolean
+    type: boolean
+    constructor: boolean
+?>
+
+<?js
+    // Define default options for the partial
+    var optMemberof = (typeof memberof === 'boolean') ? memberof : false;
+    var optArguments = (typeof arguments === 'boolean') ? arguments : doc.kind == 'function';
+    var optReturns = (typeof returns === 'boolean') ? returns : true;
+    var optType = (typeof type === 'boolean') ? type : true;
+    var optConstructor = (typeof constructor == 'boolean') ? constructor : true;
+?>
+<span class="signature">
+    <?js if (optConstructor && doc.kind == "class") { ?>
+        <span class="signature-prefix">new </span>
+    <?js } ?>
+    <?js if (optMemberof && doc.memberof) { ?>
+        <span class="signature-memberof">
+            <a href="<?js= doc.memberof.href ?>"><?js= doc.memberof.name ?></a>
+            <span class="signature-punctuation">.</span>
+        </span>
+    <?js } ?>
+    <span class="signature-name"><?js= doc.name ?></span>
+    
+    <?js if (optArguments && ['class', 'function'].includes(doc.kind)) { ?>
+        <span class="signature-punctuation">(</span>
+        <?js doc.params?.forEach((p, index, arr) => { ?>
+            <span class="signature-param"><?js= p.name ?><?js= index == arr.length - 1 ? '' : ', ' ?></span>
+        <?js }) ?>
+        <span class="signature-punctuation">)</span>
+    <?js } ?>
+    
+    <?js if (optArguments && ['class', 'function'].includes(doc.kind) && doc.returns) { ?>
+        &rarr;
+        <?js doc.returns.forEach(r => { ?>
+            <span class="signature-returns">
+                <?js~ r.type.names.join(" | ") ?>
+            </span>
+        <?js }) ?>
+    <?js } ?>
+    
+    <?js if(optType && doc.kind == "member" && doc.type) { ?>
+        <span class="signature-punctuation">: </span>
+        <span class="signature-type"><?js= doc.type.names.join("|") ?></span>
+    <?js } ?>
+</span>

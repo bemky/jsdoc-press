@@ -1,0 +1,29 @@
+{
+  "name": "jsdoc-press",
+  "version": "1.0.0",
+  "description": "A minimal, clean JSDoc HTML template for use via opts.template.",
+  "license": "MIT",
+  "main": "publish.js",
+  "files": [
+    "publish.js",
+    "tmpl/",
+    "static/",
+    "README.md"
+  ],
+  "keywords": [
+    "jsdoc",
+    "template",
+    "docs",
+    "documentation"
+  ],
+  "engines": {
+    "node": ">=14"
+  },
+  "scripts": {
+    "preview": "jsdoc -c preview.jsdoc.json"
+  },
+  "devDependencies": {
+    "jsdoc": "^4.0.3",
+    "highlight.js": "^11.9.0"
+  }
+}

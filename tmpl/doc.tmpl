@@ -1,0 +1,113 @@
+<article class="doc">
+    <header>
+        <div class="kind kind-color kind-<?js= doc.kind ?>">
+            <?js if (this.showKindIcons) { ?>
+                <span class="icon-kind icon-kind-<?js= doc.kind ?>"><?js= this.kindIcon(doc.kind) ?></span>
+            <?js } ?>
+            <?js= this.kindLabel(doc.kind, false) ?>
+        </div>
+        <h1>
+            <code class="clear">
+                <?js= this.partial('doc/signature.tmpl', {
+                    doc,
+                    constructor: false,
+                    arguments: false,
+                    memberof: true,
+                    returns: false,
+                    compact: true
+                }) ?>
+            </code>
+        </h1>
+    </header>
+
+    <?js if (doc.classdesc) { ?>
+        <section class="description"><?js= doc.classdesc ?></section>
+    <?js } else if (doc.description) { ?>
+        <section class="description"><?js= doc.description ?></section>
+    <?js } ?>
+
+    <?js if (doc.kind == 'class') { ?>
+        <section>
+            <h2>Constructor</h2>
+            <h3><code><?js= this.partial('doc/signature.tmpl', { doc, arguments: true, compact: true }) ?></code></h3>
+            <?js doc?.params?.forEach(item => { ?>
+                <div class="symbol-section parameter">
+                <?js= this.partial('doc/parameter.tmpl', { p: item })?>
+                </div>
+            <?js }); ?>
+        </section>
+    <?js } else if (doc.params && doc.params.length) { ?>
+        <section>
+            <h2>Parameters</h2>
+            <?js doc.params.forEach(p => { ?>
+                <div class="symbol-parameter">
+                    <?js= this.partial('doc/parameter.tmpl', { p })?>
+                </div>
+            <?js }); ?>
+        </section>
+    <?js } ?>
+
+    <?js if (doc.returns && doc.returns.length) { ?>
+        <section>
+            <h2>Returns</h2>
+            <?js doc.returns.forEach(r => { ?>
+                <div>
+                    <?js if (r.type && r.type.names) { ?>
+                        <code class="clear">
+                            <?js r.type.names.forEach(name => {
+                                const typename = name.match(/\<(\w+)\>/)?.at(1) || name
+                                const href = this.linkTo(typename);
+                                if (href) name = name.replace(`<${typename}>`, `<a href="${href}">&lt;${typename}&gt;</a>`)
+                                ?>
+                                <?js= name ?>
+                            <?js }) ?>
+                        </code>
+                    <?js } ?>
+                    <?js if (r.description) { ?>
+                    <div class="symbol-description">
+                        <?js= r.description ?>
+                    </div>
+                    <?js } ?>
+                </div>
+            <?js }); ?>
+        </section>
+    <?js } ?>
+    
+    <?js if (doc.examples && doc.examples.length) { ?>
+        <section>
+            <h2>Examples</h2>
+            <?js doc.examples.forEach(ex => { ?>
+                <?js= this.highlight(ex, 'javascript', {class: 'overflow-container code-block'}) ?>
+            <?js }); ?>
+        </section>
+    <?js } ?>
+    
+    <?js if (doc.properties && doc.properties.length) { ?>
+        <section>
+            <h2>Properties</h2>
+            <?js doc.properties.forEach(prop => { ?>
+                <div class="symbol-parameter">
+                    <?js= this.partial('doc/parameter.tmpl', { p: prop })?>
+                </div>
+            <?js }); ?>
+        </section>
+    <?js } ?>
+    
+    <?js if (doc.members && Object.keys(doc.members).length) { ?>
+        <?js var order = ['instance_members','static_members','instance_methods','static_methods','classes','interfaces','mixins','namespaces','members','methods','typedefs','events','enums'];
+        var keys = Object.keys(doc.members);
+        order.concat(keys.filter(k => order.indexOf(k) === -1)).forEach(k => {
+            var arr = doc.members[k];
+            if (!Array.isArray(arr) || !arr.length) return;
+        ?>
+            <section>
+                <h2><?js= this.kindLabel(k, {title: true, plural: true}) ?></h2>
+                <?js arr.forEach(item => { ?>
+                    <div class="symbol-section <?js= k ?>">
+                        <?js= this.partial('doc/summary.tmpl', { doc: item }) ?>
+                    </div>
+                <?js }); ?>
+            </section>
+        <?js }); ?>
+    <?js } ?>
+</article>

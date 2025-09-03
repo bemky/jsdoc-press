@@ -1,0 +1,34 @@
+<code><?js= p.name ?></code>
+<?js if (p.type && p.type.names) { ?>:
+    <code class="clear">
+        <?js p.type.names.forEach((name, index, arr) => {
+            const typename = name.match(/\<(\w+)\>/)?.at(1) || name
+            const href = this.linkTo(typename);
+            if (href) {
+                name = name.replace(typename, `<a href="${href}">${typename}</a>`)
+            } else {
+                name = this.htmlsafe(name)
+            }
+            ?>
+            <?js= name ?>
+            <?js= index == arr.length - 1 ? "" : "|" ?>
+        <?js }) ?>
+    </code>
+<?js } ?>
+<?js if (p.optional) { ?>
+    <span class="tag-attr tag-optional">optional</span>
+<?js } ?>
+<?js if (p.description) { ?>
+<div class="symbol-description">
+    <?js= p.description ?>
+</div>
+<?js } ?>
+<?js if (p.properties?.length) { ?>
+    <div class="symbol-parameter-properties">
+    <?js p.properties?.forEach(prop => { ?>
+        <div class="symbol-parameter-property">
+            <?js= this.partial('doc/parameter.tmpl', { p: prop })?>
+        </div>
+    <?js }) ?>
+    </div>
+<?js } ?>

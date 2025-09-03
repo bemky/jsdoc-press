@@ -1,0 +1,28 @@
+{
+  "source": {
+    "include": ["preview-lib"],
+    "includePattern": ".+\\.js(doc|x)?$",
+    "excludePattern": "(^|\\/|\\\\)_"
+  },
+  "plugins": [
+    "plugins/markdown"
+  ],
+  "sourceType": "module",
+  "opts": {
+    "destination": "./preview",
+    "encoding": "utf8",
+    "recurse": true,
+    "template": "."
+  },
+  "templates": {
+    "default": {
+      "includeDate": false
+    },
+    "javascripts": [
+      "./preview-assets/scripts/custom.js"
+    ],
+    "stylesheets": [
+      "./preview-assets/styles/custom.css"
+    ]
+  }
+}

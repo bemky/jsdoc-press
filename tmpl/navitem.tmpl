@@ -1,0 +1,65 @@
+<li>
+    <a class="nav-item <?js= activeHref == href ? 'active' : '' ?>" href="<?js= href ?>">
+        <?js if (this.showKindIcons) { ?>
+            <span class="icon-kind kind-<?js= kind ?>"><?js= this.kindIcon(kind) ?></span>
+        <?js } ?>
+        <?js= name ?>
+    </a>
+    <?js var block = (title, items, d) => {
+        if (!items || !items.length) return '';
+        if (typeof d === 'number' && d <= 0) return '';
+        var html = '<ul class="nav-children">';
+        items.forEach(it => {
+            if (it && it.longname !== longname) {
+                var nextDepth = (typeof d === 'number') ? d - 1 : undefined;
+                html += this.partial('navitem.tmpl', Object.assign({ activeHref: (typeof activeHref !== 'undefined' ? activeHref : null), maxDepth: nextDepth }, it));
+            }
+        });
+        html += '</ul>';
+        return html;
+    }; ?>
+    <?js
+    function nodeHasHref(node, target) {
+        if (!node) return false;
+        if (node.href === target) return true;
+        if (node.members) {
+            var ks = Object.keys(node.members);
+            for (var i = 0; i < ks.length; i++) {
+                var arr = node.members[ks[i]];
+                if (Array.isArray(arr) && arr.some(function(n){ return nodeHasHref(n, target); })) return true;
+            }
+        }
+        return false;
+    }
+    function anyChildHasHref(target) {
+        if (!members || typeof members !== 'object') return false;
+        var ks = Object.keys(members);
+        for (var i = 0; i < ks.length; i++) {
+            var arr = members[ks[i]];
+            if (Array.isArray(arr) && arr.some(function(n){ return nodeHasHref(n, target); })) return true;
+        }
+        return false;
+    }
+    var isActiveParent = (typeof activeHref === 'string') && (activeHref === href || anyChildHasHref(activeHref) || (memberof && memberof && memberof.href === activeHref));
+    var hasChildren = members && typeof members === 'object' && Object.keys(members).length > 0;
+    var depthRemain;
+    if (typeof maxDepth === 'number') {
+        depthRemain = maxDepth;
+    } else if (activeHref === href) {
+        depthRemain = 1; // allow one level below the active doc
+    } else if (anyChildHasHref(activeHref)) {
+        depthRemain = Infinity; // on the path to the active doc
+    } else {
+        depthRemain = 0; // off-path
+    }
+    ?>
+    <?js if (hasChildren && isActiveParent && depthRemain > 0) { ?>
+        <div class="nav-children-wrap">
+            <?js Object.keys(members).forEach(k => { ?>
+                <details class="nav-detail" <?js= isActiveParent ? 'open' : '' ?>><summary class="nav-subkind"><?js= this.kindLabel(k, {plural: true, title: true}) ?></summary>
+                    <?js= block(this.kindLabel(k), members[k], depthRemain) ?>
+                </details>
+            <?js }); ?>
+        </div>
+    <?js } ?>
+</li>
