@@ -5,8 +5,9 @@
 ## Setup
 
 Add JSDoc and this template to your project:
-  - `npm install --save-dev jsdoc`
-  - `npm install --save-dev github:bemky/jsdoc-press`
+
+    npm install --save-dev jsdoc
+    npm install --save-dev github:bemky/jsdoc-press
 
 In your `jsdoc.json`:
   ```json
