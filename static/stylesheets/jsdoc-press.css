@@ -1,14 +1,16 @@
-@import "jsdoc-stock/base.css";
-@import "jsdoc-stock/layout.css";
-@import "jsdoc-stock/kinds.css";
-@import "jsdoc-stock/nav.css";
-@import "jsdoc-stock/tables.css";
-@import "jsdoc-stock/code.css";
-@import "jsdoc-stock/sections.css";
-@import "jsdoc-stock/symbol-section.css";
-@import "jsdoc-stock/overflow-container.css";
-@import "jsdoc-stock/signature.css";
-@import "jsdoc-stock/highlight.css";
+@import "jsdoc-press/base.css";
+@import "jsdoc-press/layout.css";
+@import "jsdoc-press/kinds.css";
+@import "jsdoc-press/nav.css";
+@import "jsdoc-press/tables.css";
+@import "jsdoc-press/code.css";
+@import "jsdoc-press/sections.css";
+@import "jsdoc-press/overflow-container.css";
+@import "jsdoc-press/signature.css";
+@import "jsdoc-press/highlight.css";
+@import "jsdoc-press/description.css";
+@import "jsdoc-press/doc.css";
+@import "jsdoc-press/summary.css";
 
 :root {
     --body-family: system-ui,sans-serif;
