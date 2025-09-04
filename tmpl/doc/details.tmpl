@@ -83,12 +83,15 @@
             <h2 class="section-title kind-<?js= this.singularize(k) ?>"><?js= this.kindLabel(k, {title: true, plural: true}) ?></h2>
             <?js arr.forEach(item => { ?>
                 <?js if (['classes', 'modules'].includes(k)) { ?>
-                    <a class="symbol-summary-title" href="<?js= item.href ?>">
+                    <div class="symbol-summary-title">
                         <?js if (this.showKindIcons) { ?>
-                            <span class="icon-kind kind-<?js= item.kind ?>"><?js= this.kindIcon(item.kind) ?></span>
+                            <span class="icon-kind kind-<?js= item.kind ?>">
+                                <?js= this.kindIcon(item.kind) ?>
+                            </span>
+                            &nbsp;
                         <?js } ?>
-                        <code><?js= this.partial('doc/signature.tmpl', { doc: item, constructor: false }) ?></code>
-                    </a>
+                        <a href="<?js= item.href ?>"><code><?js= this.partial('doc/signature.tmpl', { doc: item, constructor: false }) ?></code></a>
+                    </div>
                 <?js } else { ?>
                     <div class="symbol-summary <?js= k ?>" id="<?js= item.anchor ?>">
                         <?js= this.partial('doc/summary.tmpl', { doc: item }) ?>

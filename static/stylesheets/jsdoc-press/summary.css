@@ -18,7 +18,7 @@
     font-size: 1.1em;
     display:block;
     border-bottom: 1px solid var(--body-border);
-    padding-bottom: 0.5em;
+    padding-block: 0.5em;
     
     code {
         padding: 0;
