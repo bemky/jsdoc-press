@@ -88,6 +88,11 @@ Inject custom JavaScript and CSS on every page via `templates.javascripts` and `
 
 Local paths (relative or absolute filesystem paths) are copied into the docs output under `assets/scripts/` and `assets/styles/`, and the corresponding URLs are rewritten. Remote URLs are used as-is. The `staticFiles` option copies your own files/folders directly into the destination root; for example, with `"staticFiles": "./public"` a file `./public/logo.svg` will be available at `logo.svg` and can be referenced by `templates.logo: "logo.svg"`.
 
+## Demo
+![Demo Index](./preview-assets/images/demo-index.png?raw=true)
+![Demo Class](./preview-assets/images/demo-class.png?raw=true)
+![Demo Module](./preview-assets/images/demo-module.png?raw=true)
+
 ## Development
 
 - Example symbols live in `preview-lib/` (classes, functions, typedefs, namespace, mixin, interface, enum, events).
