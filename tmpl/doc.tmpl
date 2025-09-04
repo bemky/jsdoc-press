@@ -7,16 +7,7 @@
             <?js= this.kindLabel(doc.kind, false) ?>
         </div>
         <h1>
-            <code class="clear">
-                <?js= this.partial('doc/signature.tmpl', {
-                    doc,
-                    constructor: false,
-                    arguments: false,
-                    memberof: true,
-                    returns: false,
-                    compact: true
-                }) ?>
-            </code>
+            <?js= doc.longname ?>
         </h1>
     </header>
 
