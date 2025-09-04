@@ -4,6 +4,9 @@ document.addEventListener('DOMContentLoaded', function () {
     });
     
     
+    document.body.querySelectorAll('pre:has(code)').forEach(block => {
+        block.classList.add('overflow-container')
+    })
     document.body.querySelectorAll('.overflow-container').forEach(container => {
         if (container.scrollWidth > container.clientWidth) {
             const overflowObserver = new IntersectionObserver(entries => {

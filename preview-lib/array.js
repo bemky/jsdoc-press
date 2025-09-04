@@ -1,7 +1,14 @@
 import * as support from '../support';
 
 /**
- * descirption...
+ * Array helpers
+ * ```javascript
+ * class PropertiesController extends ApplicationController {
+ *   index() {
+ *     console.log(`You have reached the ${this.action_name} page`);
+ *   }
+ * }
+ * ```
  * @module Array
  * @memberof Support
  * @ignore

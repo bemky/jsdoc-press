@@ -1,13 +1,16 @@
-.code-block {
+pre:has(code) {
     border: 1px solid var(--code-border);
     border-radius: 0.35em;
     overflow: auto;
     background: var(--code-bg);
     color: var(--code-color);
+    display: inline-block;
+    max-width: 100%;
+    
     code {
        font-size: 0.8em;
        line-height: 1.6;
-       display: block;
+       display: inlin-block;
        background: none;
        color: inherit;
    }

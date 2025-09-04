@@ -5,9 +5,9 @@
 @import "jsdoc-press/tables.css";
 @import "jsdoc-press/code.css";
 @import "jsdoc-press/sections.css";
+@import "jsdoc-press/highlight.css";
 @import "jsdoc-press/overflow-container.css";
 @import "jsdoc-press/signature.css";
-@import "jsdoc-press/highlight.css";
 @import "jsdoc-press/description.css";
 @import "jsdoc-press/doc.css";
 @import "jsdoc-press/summary.css";

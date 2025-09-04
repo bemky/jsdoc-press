@@ -54,6 +54,7 @@ Inject custom JavaScript and CSS on every page via `templates.javascripts` and `
         "order": ["module", "class", "namespace", "interface", "mixin", "method", "member", "typedef", "enum", "event"],
         "exclude": ["typedef", "event"]
       },
+      "transformHtml": "./.jsdoc/transform-html.js",
       "javascripts": [
         "https://unpkg.com/lite-youtube-embed/src/lite-yt-embed.js",
         "./scripts/custom.js"
@@ -82,6 +83,8 @@ Inject custom JavaScript and CSS on every page via `templates.javascripts` and `
 |cleanOutput|Boolean|Wipes destination folder before generating new files.|true|
 |showKindIcons|Boolean|Displays compact kind icons (F, C, etc.) in nav and pages.|true|
 |templates|String|Path to directory of template overrides checked before built-in `tmpl/` (mirrors default structure).|none|
+|transformHtml|String,Array<String>|Path(s) to JS module(s) that export a function `(html, ctx) => string` (or `{ transform(html, ctx) }`) applied to every generated HTML file after layout. Useful for custom highlighting or post-processing.|none|
+|highlight|Boolean|Enable post-layout code block highlighting via highlight.js for all `<pre><code>` blocks.|true|
 
 Local paths (relative or absolute filesystem paths) are copied into the docs output under `assets/scripts/` and `assets/styles/`, and the corresponding URLs are rewritten. Remote URLs are used as-is. The `staticFiles` option copies your own files/folders directly into the destination root; for example, with `"staticFiles": "./public"` a file `./public/logo.svg` will be available at `logo.svg` and can be referenced by `templates.logo: "logo.svg"`.
 

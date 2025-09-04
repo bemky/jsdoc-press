@@ -9,7 +9,7 @@ const template = require('jsdoc/template');
 const env = require('jsdoc/env');
 const nfs = require('fs');
 const helper = require("jsdoc/util/templateHelper")
-const hljs = require('highlight.js')
+const hljs = require('highlight.js');
 const markdown = require('jsdoc/util/markdown');
 const markdownParser = markdown.getParser();
 
@@ -102,22 +102,6 @@ exports.publish = function publish(data, opts) {
             if (map[k]) return map[k];
             // fallback: first letter uppercase
             return (k[0] || '?').toUpperCase();
-        },
-        // Syntax highlight helper: render HTML with highlight.js
-        highlight: function(code, lang, options={}) {
-            try {
-                if (lang && hljs.getLanguage(lang)) {
-                    const html = hljs.highlight(code ?? '', { language: lang, ignoreIllegals: true }).value;
-                    return `<pre class="${options['class'] || ""}"><code class="hljs language-${lang}">${html}</code></pre>`;
-                }
-                if (!lang && typeof code === 'string' && code.length) {
-                    const res = hljs.highlightAuto(code);
-                    const detected = res.language || 'plaintext';
-                    return `<pre class="${options['class'] || ""}"><code class="hljs language-${detected}">${res.value}</code></pre>`;
-                }
-            } catch (_) {}
-            const safe = helper.htmlsafe(String(code ?? ''));
-            return `<pre class="${options['class'] || ""}"><code class="hljs">${safe}</code></pre>`;
         }
     });
     const partialWas = views.partial
@@ -183,8 +167,69 @@ exports.publish = function publish(data, opts) {
     const jsIncludes = stageAssets(jsRaw, 'javascripts');
     const cssIncludes = stageAssets(cssRaw, 'stylesheets');
 
-    function applyLayout(content, pageTitle, navGroups, activeHref) {
-        return views.render('layout.tmpl', {
+    // Build an optional HTML transform pipeline that runs on every full HTML document
+    const htmlTransformers = (() => {
+        const fns = [];
+        const spec = tconf?.transformHtml;
+        const list = Array.isArray(spec) ? spec : (spec ? [spec] : []);
+        for (const entry of list) {
+            if (typeof entry !== 'string' || !entry) continue;
+            try {
+                const modPath = path.isAbsolute(entry) ? entry : path.resolve(env?.pwd || process.cwd(), entry);
+                // eslint-disable-next-line import/no-dynamic-require, global-require
+                const mod = require(modPath);
+                const fn = (typeof mod === 'function') ? mod : (typeof mod?.transform === 'function' ? mod.transform : null);
+                if (typeof fn === 'function') fns.push(fn);
+                else console.warn('[template] transformHtml module has no function:', entry);
+            } catch (e) {
+                console.warn('[template] failed to load transformHtml module:', entry, e.message);
+            }
+        }
+        return fns;
+    })();
+
+    // Highlight all <pre><code> blocks in the final HTML using highlight.js
+    const highlightEnabled = (typeof tconf?.highlight === 'undefined') ? true : Boolean(tconf.highlight);
+    function decodeEntities(s) {
+        return String(s)
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>')
+            .replace(/&amp;/g, '&')
+            .replace(/&quot;/g, '"')
+            .replace(/&#39;/g, "'");
+    }
+    function highlightAllCodeBlocks(html) {
+        if (!highlightEnabled) return html;
+        return String(html).replaceAll(/<pre([^>]*)>\s*<code([^>]*)>([\s\S]*?)<\/code>\s*<\/pre>/gmsi,
+            (match, preAttr, codeAttr, inner) => {
+                const inPre = preAttr || '';
+                const inCode = codeAttr || '';
+                if (/\bhljs\b/i.test(inPre) || /\bhljs\b/i.test(inCode)) return match; // already highlighted
+                const cls = `${inPre} ${inCode}`;
+                let lang = (cls.match(/\blang(?:uage)?[-_:]?([A-Za-z0-9]+)/i) || [])[1];
+                if (lang) lang = lang.toLowerCase();
+                const code = decodeEntities(inner);
+                const res = lang
+                    ? hljs.highlight(code, { language: lang, ignoreIllegals: true })
+                    : hljs.highlightAuto(code);
+                const langClass = res.language ? ` language-${res.language}` : '';
+                return `<pre class="overflow-container code-block"><code class="hljs${langClass}">${res.value}</code></pre>`;
+            }
+        );
+    }
+
+    function runHtmlTransforms(html, context) {
+        let out = String(html ?? '');
+        // Built-in highlighting pass across the full document
+        out = highlightAllCodeBlocks(out);
+        for (const fn of htmlTransformers) {
+            try { out = String(fn(out, context) ?? out); } catch (e) { console.warn('[template] transformHtml error:', e.message); }
+        }
+        return out;
+    }
+
+    function applyLayout(content, pageTitle, navGroups, activeHref, context={}) {
+        const html = views.render('layout.tmpl', {
             content,
             title: pageTitle || 'Documentation',
             navGroups,
@@ -192,6 +237,7 @@ exports.publish = function publish(data, opts) {
             javascripts: jsIncludes,
             stylesheets: cssIncludes,
         });
+        return runHtmlTransforms(html, context);
     }
 
     // Copy static assets if present (recursive copy)
@@ -523,11 +569,11 @@ exports.publish = function publish(data, opts) {
     let writeCount = 0;
     if (!indexContentHtml) {
         const indexHtml = views.render('index.tmpl', { title: 'Documentation', nav: containerNav });
-        fs.writeFileSync(path.join(outdir, 'index.html'), applyLayout(indexHtml, indexTitle, navGroups, null), 'utf8');
+        fs.writeFileSync(path.join(outdir, 'index.html'), applyLayout(indexHtml, indexTitle, navGroups, null, { page: 'index' }), 'utf8');
         writeCount++;
     } else {
         const rendered = markdownParser(indexContentHtml);
-        fs.writeFileSync(path.join(outdir, 'index.html'), applyLayout(rendered, indexTitle, navGroups, null), 'utf8');
+        fs.writeFileSync(path.join(outdir, 'index.html'), applyLayout(rendered, indexTitle, navGroups, null, { page: 'index' }), 'utf8');
         writeCount++;
     }
 
@@ -562,7 +608,7 @@ exports.publish = function publish(data, opts) {
 
         const html = views.render('doc.tmpl', { doc: d, kinds });
         const out = path.join(outdir, fileFor(d));
-        fs.writeFileSync(out, applyLayout(html, d.longname || d.name, navGroups, d.href), 'utf8');
+        fs.writeFileSync(out, applyLayout(html, d.longname || d.name, navGroups, d.href, { page: 'doc', doc: d }), 'utf8');
         writeCount++;
     }
 
