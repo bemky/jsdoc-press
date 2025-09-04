@@ -41,7 +41,9 @@
 }
 
 .kind-function,
-.kind-method {
+.kind-method,
+.kind-instance_method,
+.kind-static_method {
     --hue: var(--function-hue);
 }
 

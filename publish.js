@@ -76,6 +76,7 @@ exports.publish = function publish(data, opts) {
 
     const views = Object.assign(new template.Template(path.join(__dirname, 'tmpl')), {
         pluralize: pluralize,
+        singularize: singularize,
         titleize: titleize,
         kindLabel: kindLabel,
         find: function(spec) { return this.findAll(spec).at(0) },

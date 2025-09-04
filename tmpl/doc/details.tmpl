@@ -58,7 +58,7 @@
     <section>
         <h2>Examples</h2>
         <?js doc.examples.forEach(ex => { ?>
-            <?js= ex ?>
+            <pre><code><?js= ex ?></code></pre>
         <?js }); ?>
     </section>
 <?js } ?>
@@ -80,7 +80,7 @@
         if (!Array.isArray(arr) || !arr.length) return;
     ?>
         <section id="section-<?js= k ?>">
-            <h2 class="section-title kind-<?js= k ?>"><?js= this.kindLabel(k, {title: true, plural: true}) ?></h2>
+            <h2 class="section-title kind-<?js= this.singularize(k) ?>"><?js= this.kindLabel(k, {title: true, plural: true}) ?></h2>
             <?js arr.forEach(item => { ?>
                 <?js if (['classes', 'modules'].includes(k)) { ?>
                     <a class="symbol-summary-title" href="<?js= item.href ?>">
