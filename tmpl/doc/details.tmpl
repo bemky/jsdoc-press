@@ -80,7 +80,7 @@
         if (!Array.isArray(arr) || !arr.length) return;
     ?>
         <section id="section-<?js= k ?>">
-            <h2><?js= this.kindLabel(k, {title: true, plural: true}) ?></h2>
+            <h2 class="section-title kind-<?js= k ?>"><?js= this.kindLabel(k, {title: true, plural: true}) ?></h2>
             <?js arr.forEach(item => { ?>
                 <?js if (['classes', 'modules'].includes(k)) { ?>
                     <a class="symbol-summary-title" href="<?js= item.href ?>">

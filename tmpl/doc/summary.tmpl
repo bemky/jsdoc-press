@@ -1,8 +1,10 @@
-<a class="symbol-summary-title" href="<?js= doc.href ?>">
+<div class="symbol-summary-title">
     <?js if (this.showKindIcons) { ?>
         <span class="icon-kind kind-<?js= doc.kind ?>"><?js= this.kindIcon(doc.kind) ?></span>
+        &nbsp;
     <?js } ?>
-    <code><?js= this.partial('doc/signature.tmpl', { doc }) ?></code>
-</a>
+    <a href="<?js= doc.href ?>"><code><?js= this.partial('doc/signature.tmpl', { doc }) ?></code></a>
+</div>
+
 
 <?js= this.partial('doc/details.tmpl', { doc, depth: 2 }) ?>

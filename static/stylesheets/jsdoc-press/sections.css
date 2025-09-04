@@ -1,31 +1,9 @@
-.subsections-title {
-    font-weight: 900;
-    text-transform: uppercase;
-    background: var(--muted-bg);
-    color: var(--muted-color);
-    text-align:center;
+.section-title {
     padding: 1em;
-}
-
-.subsection {
-    padding-block: 30px;
-    border-bottom: 1px solid var(--body-border);
-    & > *:first-child {
-        margin-top: 0;
-    }
-
-    li p{
-        margin: 0;
-    }
-
-    li p + li p{
-        margin-top: 1em;
-    }
-    
-    .subsection-title {
-        font-family: var(--monospace-family);
-        font-optical-sizing: auto;
-        font-style: normal;
-        font-weight: 900;
-    }
+    text-align: center;
+    background: light-dark(oklch(80% 70% var(--hue, var(--primary-hue)) / 0.4), oklch(60% 50% var(--hue, var(--primary-hue)) / 0.4));
+    color: light-dark(oklch(40% 50% var(--hue, var(--primary-hue))), oklch(70% 40% var(--hue, var(--primary-hue))));
+    text-transform: uppercase;
+    font-weight: 900;
+    font-size: 1rem;
 }
