@@ -8,6 +8,7 @@ Add JSDoc and this template to your project:
 
     npm install --save-dev jsdoc
     npm install --save-dev github:bemky/jsdoc-press
+    npm install --save-dev highlight.js
 
 In your `jsdoc.json`:
   ```json
@@ -21,7 +22,7 @@ In your `jsdoc.json`:
   }
   ```
 
-- Generate docs: `npx jsdoc -c jsdoc.json`
+Generate docs: `npx jsdoc -c jsdoc.json`
 
 ## Template Anatomy
 
@@ -47,6 +48,12 @@ Inject custom JavaScript and CSS on every page via `templates.javascripts` and `
     "opts": { "template": "node_modules/jsdoc-template-boilerplate" },
     "templates": {
       "cleanOutput": true,
+      "index": "./README.md",
+      "staticFiles": "./public", 
+      "nav": {
+        "order": ["module", "class", "namespace", "interface", "mixin", "method", "member", "typedef", "enum", "event"],
+        "exclude": ["typedef", "event"]
+      },
       "javascripts": [
         "https://unpkg.com/lite-youtube-embed/src/lite-yt-embed.js",
         "./scripts/custom.js"
@@ -61,21 +68,22 @@ Inject custom JavaScript and CSS on every page via `templates.javascripts` and `
     }
   }
   ```
- - Scripts render as `<script src="..."></script>` near the end of `body`.
- - Styles render as `<link rel="stylesheet" href="..." />` in `head`.
- - `cleanOutput` (default true): when enabled, the template wipes the destination folder before generating new files.
- - `showKindIcons` (default true): when enabled, kinds render as compact icons (e.g., `F` for function, `C` for class) in the sidebar and on symbol pages.
- - `footer` (boolean|string, default true):
-   - `true`: renders the default footer text.
-   - `false`: hides the footer entirely.
-   - `"<html>..."` string: renders the provided string as HTML in the footer.
+  
+|option|type|description|default|
+|------|----|------------|-------|
+|logo|String|Path to logo in output (copy it via `staticFiles`).|none|
+|index|String|Path to a Markdown file to include as the landing page (`index.html`). Content is injected as-is; add your own Markdown plugin if you want HTML rendering. Falls back to repo `README.*` if not provided.|none|
+|staticFiles|String,Array<String>|Path(s) to a file or directory to copy into the destination folder. Directories copy recursively and preserve structure.|none|
+|nav.order|Array<String>|Order of kinds in the sidebar and index. Missing kinds are appended in the default order.|`[module, class, interface, mixin, namespace, method, member, typedef, enum, event]`|
+|nav.exclude|Array<String>|Kinds to hide from the sidebar and index navigation.|none|
+|footer|Boolean,String|`false` hides footer; `true` renders default; a string renders as HTML.|true|
+|javascripts|Array<String>|Scripts to inject; local paths copied to `assets/scripts/`, remote URLs used as-is; rendered as `<script src="..."></script>` before `</body>`.|[]|
+|stylesheets|Array<String>|Styles to inject; local paths copied to `assets/styles/`, remote URLs used as-is; rendered as `<link rel="stylesheet" />` in `head`.|[]|
+|cleanOutput|Boolean|Wipes destination folder before generating new files.|true|
+|showKindIcons|Boolean|Displays compact kind icons (F, C, etc.) in nav and pages.|true|
+|templates|String|Path to directory of template overrides checked before built-in `tmpl/` (mirrors default structure).|none|
 
- - `templates` (string, optional): Path to a directory containing template overrides. When set, the renderer first checks this folder for a requested partial before falling back to the built-in `tmpl/`.
-   - Mirrors the default structure (for example: `doc/summary.tmpl`, `layout.tmpl`, `navitem.tmpl`).
-   - Relative paths resolve against your JSDoc working directory (env.pwd / process.cwd()); absolute paths are supported.
-   - All standard helpers are available inside overrides (e.g., `kindLabel`, `htmlsafe`, `highlight`, `linkTo`, `find`, `findAll`).
-
-Local paths (relative or absolute filesystem paths) are copied into the docs output under `assets/scripts/` and `assets/styles/`, and the corresponding URLs are rewritten. Remote URLs are used as-is.
+Local paths (relative or absolute filesystem paths) are copied into the docs output under `assets/scripts/` and `assets/styles/`, and the corresponding URLs are rewritten. Remote URLs are used as-is. The `staticFiles` option copies your own files/folders directly into the destination root; for example, with `"staticFiles": "./public"` a file `./public/logo.svg` will be available at `logo.svg` and can be referenced by `templates.logo: "logo.svg"`.
 
 ## Development
 

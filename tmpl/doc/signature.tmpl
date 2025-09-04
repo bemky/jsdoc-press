@@ -40,13 +40,29 @@
         &rarr;
         <?js doc.returns.forEach(r => { ?>
             <span class="signature-returns">
-                <?js~ r.type.names.join(" | ") ?>
+                <?js r.type.names.forEach((name, index, arr) => {
+                    const typename = name.match(/\<(\w+)\>/)?.at(1) || name
+                    const href = this.linkTo(typename);
+                    name = href ? name.replace(`<${typename}>`, `<a href="${href}">&lt;${typename}&gt;</a>`) : this.htmlsafe(name)
+                    ?>
+                    <?js= name ?>
+                    <?js= index == arr.length - 1 ? "" : "|" ?>
+                <?js }) ?>
             </span>
         <?js }) ?>
     <?js } ?>
     
     <?js if(optType && doc.kind == "member" && doc.type) { ?>
         <span class="signature-punctuation">: </span>
-        <span class="signature-type"><?js= doc.type.names.join("|") ?></span>
+        <span class="signature-type">
+            <?js doc.type.names.forEach((name, index, arr) => {
+                const typename = name.match(/\<(\w+)\>/)?.at(1) || name
+                const href = this.linkTo(typename);
+                name = href ? name.replace(`<${typename}>`, `<a href="${href}">&lt;${typename}&gt;</a>`) : this.htmlsafe(name)
+                ?>
+                <?js= name ?>
+                <?js= index == arr.length - 1 ? "" : "|" ?>
+            <?js }) ?>
+        </span>
     <?js } ?>
 </span>

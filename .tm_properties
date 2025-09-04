@@ -1,0 +1,5 @@
+exclude = '{$exclude,tmp,esdoc,.tm_properties,node_modules}'
+
+[ *.js ]
+tabSize = 4
+softTabs = true

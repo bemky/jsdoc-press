@@ -10,8 +10,14 @@ const env = require('jsdoc/env');
 const nfs = require('fs');
 const helper = require("jsdoc/util/templateHelper")
 const hljs = require('highlight.js')
+const markdown = require('jsdoc/util/markdown');
+const markdownParser = markdown.getParser();
 
 function singularize (str) {
+    const map = {
+        modules: 'module'
+    }
+    if (map[str]) return map[str]
     return str.replace(/(?<!s)e?s$/, '')
 }
 
@@ -48,10 +54,9 @@ function kindLabel(kind, options={}) {
 */
 exports.publish = function publish(data, opts) {
     const outdir = path.normalize(opts.destination || './docs');
+    const tconf = env?.conf?.templates || {};
     // Read cleaning option (default: true) and wipe output directory if enabled
-    const cleanOutput = (env && env.conf && env.conf.templates && typeof env.conf.templates.cleanOutput === 'boolean')
-    ? !!env.conf.templates.cleanOutput
-    : true;
+    const cleanOutput = (typeof tconf.cleanOutput === 'boolean') ? !!tconf.cleanOutput : true;
     try {
         if (cleanOutput && nfs.existsSync(outdir)) {
             // Remove all contents inside outdir (equivalent to `${outdir}/**/*`), but keep the directory itself
@@ -67,9 +72,7 @@ exports.publish = function publish(data, opts) {
 
     // Load view engine from ./tmpl
     // Template options
-    const showKindIcons = (env && env.conf && env.conf.templates && typeof env.conf.templates.showKindIcons === 'boolean')
-        ? !!env.conf.templates.showKindIcons
-        : true;
+    const showKindIcons = (typeof tconf.showKindIcons === 'boolean') ? !!tconf.showKindIcons : true;
 
     const views = Object.assign(new template.Template(path.join(__dirname, 'tmpl')), {
         pluralize: pluralize,
@@ -78,7 +81,7 @@ exports.publish = function publish(data, opts) {
         find: function(spec) { return this.findAll(spec).at(0) },
         htmlsafe: helper.htmlsafe,
         findAll: spec => helper.find(data, spec),
-        conf: (env && env.conf) ? env.conf : {},
+        conf: (env?.conf) ? env.conf : {},
         showKindIcons,
         kindIcon: function(kind) {
             const map = {
@@ -120,13 +123,13 @@ exports.publish = function publish(data, opts) {
     const partialWas = views.partial
     views.partial = function (template, options) {
         // If configured, check a custom templates directory for an override first
-        const customDirRaw = this && this.conf && this.conf.templates && typeof this.conf.templates.templates === 'string'
+        const customDirRaw = (typeof this?.conf?.templates?.templates === 'string')
         ? this.conf.templates.templates
         : null;
         if (customDirRaw) {
             const overrideBase = path.isAbsolute(customDirRaw)
             ? customDirRaw
-            : path.resolve(env.pwd || process.cwd(), customDirRaw);
+            : path.resolve(env?.pwd || process.cwd(), customDirRaw);
             const overridePath = path.join(overrideBase, template);
             if (fs.existsSync(overridePath)) {
                 template = overrideBase
@@ -147,17 +150,17 @@ exports.publish = function publish(data, opts) {
     function isUrl(s) { return typeof s === 'string' && /^(?:[a-z]+:)?\/\//i.test(s); }
     function stageAssets(list, subdir) {
         const results = [];
-        const targetBase = path.join(outdir, 'assets', subdir);
+        const targetBase = path.join(outdir, subdir);
         if (!list || !list.length) return results;
         fs.mkPath(targetBase);
         for (const entry of list) {
             if (isUrl(entry)) { results.push(entry); continue; }
             try {
-                const abs = path.isAbsolute(entry) ? entry : path.resolve(env.pwd || process.cwd(), entry);
+                const abs = path.isAbsolute(entry) ? entry : path.resolve(env?.pwd || process.cwd(), entry);
                 if (nfs.existsSync(abs)) {
                     const dest = path.join(targetBase, path.basename(abs));
                     nfs.copyFileSync(abs, dest);
-                    results.push(path.toUrl ? path.toUrl(path.join('assets', subdir, path.basename(abs))) : path.join('assets', subdir, path.basename(abs)));
+                    results.push(path.toUrl ? path.toUrl(path.join(subdir, path.basename(abs))) : path.join(subdir, path.basename(abs)));
                 } else {
                     results.push(entry);
                 }
@@ -168,15 +171,17 @@ exports.publish = function publish(data, opts) {
         return results;
     }
 
+    // Note: index Markdown is injected as-is; add your own client-side markdown plugin if desired.
+
     // Read template settings from jsdoc.json -> templates.{javascripts,stylesheets}
-    const jsRaw = Array.isArray(env && env.conf && env.conf.templates && env.conf.templates.javascripts)
-    ? env.conf.templates.javascripts.filter((s) => typeof s === 'string')
+    const jsRaw = Array.isArray(tconf.javascripts)
+    ? tconf.javascripts.filter((s) => typeof s === 'string')
     : [];
-    const cssRaw = Array.isArray(env && env.conf && env.conf.templates && env.conf.templates.stylesheets)
-    ? env.conf.templates.stylesheets.filter((s) => typeof s === 'string')
+    const cssRaw = Array.isArray(tconf.stylesheets)
+    ? tconf.stylesheets.filter((s) => typeof s === 'string')
     : [];
-    const jsIncludes = stageAssets(jsRaw, 'scripts');
-    const cssIncludes = stageAssets(cssRaw, 'styles');
+    const jsIncludes = stageAssets(jsRaw, 'javascripts');
+    const cssIncludes = stageAssets(cssRaw, 'stylesheets');
 
     function applyLayout(content, pageTitle, navGroups, activeHref) {
         return views.render('layout.tmpl', {
@@ -203,6 +208,33 @@ exports.publish = function publish(data, opts) {
         }
     } catch (e) {
         console.warn('[template] failed to copy static assets:', e.message);
+    }
+
+    // Copy user-provided static files/directories if configured via templates.staticFiles
+    try {
+        const rawStatic = tconf.staticFiles;
+        const list = Array.isArray(rawStatic) ? rawStatic : (typeof rawStatic === 'string' ? [rawStatic] : []);
+        for (const entry of list) {
+            if (typeof entry !== 'string' || !entry) continue;
+            const src = path.isAbsolute(entry) ? entry : path.resolve(env?.pwd || process.cwd(), entry);
+            if (!nfs.existsSync(src)) { console.warn('[template] staticFiles missing:', entry); continue; }
+            const stat = nfs.statSync(src);
+            if (stat.isDirectory()) {
+                const files = fs.ls(src, 99);
+                files.forEach((absPath) => {
+                    const rel = absPath.replace(path.join(src, path.sep), '');
+                    const destDir = fs.toDir(path.join(outdir, rel));
+                    fs.mkPath(destDir);
+                    fs.copyFileSync(absPath, destDir);
+                });
+            } else if (stat.isFile()) {
+                const destDir = fs.toDir(path.join(outdir, path.basename(src)));
+                fs.mkPath(destDir);
+                fs.copyFileSync(src, destDir);
+            }
+        }
+    } catch (e) {
+        console.warn('[template] failed to copy templates.staticFiles assets:', e.message);
     }
 
     // Prepare data
@@ -233,15 +265,64 @@ exports.publish = function publish(data, opts) {
     }
 
     // Build hierarchical structure by memberof; attach children buckets on parent nodes
-    const kindOrder = ['module', 'class', 'interface', 'mixin', 'namespace', 'method', 'member', 'typedef', 'enum', 'event'];
+    const defaultKindOrder = ['module', 'class', 'interface', 'mixin', 'namespace', 'method', 'member', 'typedef', 'enum', 'event'];
+    const userKindOrder = Array.isArray(tconf?.nav?.order)
+        ? tconf.nav.order.filter(k => typeof k === 'string').map(s => String(s).toLowerCase())
+        : null;
+    const excludeKinds = new Set(
+        Array.isArray(tconf?.nav?.exclude)
+            ? tconf.nav.exclude
+                .filter(k => typeof k === 'string')
+                .map(s => String(s).toLowerCase())
+                .map(s => singularize(s))
+            : []
+    );
+    const kindOrder = (() => {
+        if (!userKindOrder || !userKindOrder.length) return defaultKindOrder.slice();
+        const seen = new Set();
+        const merged = [];
+        for (const k of userKindOrder) { if (!seen.has(k)) { merged.push(k); seen.add(k); } }
+        for (const k of defaultKindOrder) { if (!seen.has(k)) { merged.push(k); seen.add(k); } }
+        return merged.filter(k => !excludeKinds.has(k));
+    })();
     const orderIndex = new Map(kindOrder.map((k, i) => [k, i]));
 
     const nodeByLongname = new Map();
-    // Expose a simple view helper to link to a doc by longname
-    // Accepts a string longname and returns the computed href (or empty string if unknown)
+    // Resolve a reference to a node by exact longname, or by common aliases like 'module:<name>' or simple name
+    function resolveNode(ref) {
+        if (!ref) return null;
+        let node = nodeByLongname.get(ref);
+        if (node) return node;
+        const s = String(ref);
+        if (!s.includes(':')) {
+            node = nodeByLongname.get(`module:${s}`);
+            if (node) return node;
+        }
+        // Fallback: resolve by simple name with preference order
+        const candidates = [];
+        for (const v of nodeByLongname.values()) {
+            if (v && v.name === s) candidates.push(v);
+        }
+        if (candidates.length === 1) return candidates[0];
+        if (candidates.length > 1) {
+            const pref = new Map(['module','namespace','class','mixin','interface','typedef','enum','event','function','method','member']
+                .map((k,i)=>[k,i]));
+            candidates.sort((a,b)=>{
+                const ia = pref.has(a.kind) ? pref.get(a.kind) : 999;
+                const ib = pref.has(b.kind) ? pref.get(b.kind) : 999;
+                if (ia !== ib) return ia - ib;
+                return String(a.longname || a.name).localeCompare(String(b.longname || b.name));
+            });
+            return candidates[0];
+        }
+        return null;
+    }
+
+    // Expose a simple view helper to link to a doc by longname or name
+    // Accepts a string and returns the computed href (or empty string if unknown)
     views.linkTo = function linkTo(longname) {
         if (!longname) return '';
-        const node = nodeByLongname.get(longname);
+        const node = resolveNode(longname);
         return (node && node.href) ? node.href : '';
     };
     function consolidateParams(params) {
@@ -299,6 +380,14 @@ exports.publish = function publish(data, opts) {
         d.memberof = null;
         // Unified members object: keys are buckets ('methods', 'classes', ...)
         d.members = {};
+        // Stable anchor id used when summarized on a parent page
+        try {
+            d.anchor = 'symbol-' + toSlug(d.longname || d.name || d.kind || '');
+        } catch (_) {
+            d.anchor = 'symbol-' + String(d.longname || d.name || d.kind || '');
+        }
+        // Bucket key this doc appears under on its parent page (set in addToBucket)
+        d.sectionKey = null;
         // Consolidate dotted params (e.g., options.location) into parent param properties
         if (Array.isArray(d.params)) {
             d.params = consolidateParams(d.params);
@@ -318,11 +407,15 @@ exports.publish = function publish(data, opts) {
             }
         }
         if (!target.members[bucket]) target.members[bucket] = [];
+        // record the section bucket used for this child
+        item.sectionKey = bucket;
         target.members[bucket].push(item);
     }
     for (const d of docs) {
         const node = nodeByLongname.get(d.longname);
-        const parent = d.memberofLongname ? nodeByLongname.get(d.memberofLongname) : null;
+        let parent = d.memberofLongname ? nodeByLongname.get(d.memberofLongname) : null;
+        if (!parent && d.memberofLongname) parent = resolveNode(d.memberofLongname);
+        
         if (parent) {
             // Set inverse memberof reference
             node.memberof = parent;
@@ -363,13 +456,6 @@ exports.publish = function publish(data, opts) {
         rootsByKind.set(k, arr);
     };
     for (const r of roots) pushKind(r.kind, r);
-    for (const d of docs) {
-        const n = nodeByLongname.get(d.longname);
-        if (!n) continue;
-        const parent = n.memberof || (n.memberofLongname ? nodeByLongname.get(n.memberofLongname) : null);
-        const isModuleParent = !!(parent && parent.kind === 'module') || (typeof n.memberofLongname === 'string' && n.memberofLongname.indexOf('module:') === 0);
-        if (isModuleParent) pushKind(n.kind, n);
-    }
     const navGroups = [];
     for (const k of kindOrder) {
         const items = rootsByKind.get(k) || [];
@@ -384,19 +470,75 @@ exports.publish = function publish(data, opts) {
 
     // Doclets are already augmented in-place via makeNode; no further attachment required.
 
+    // Update hrefs for members/methods/events to point to parent page anchors when applicable
+    for (const d of docs) {
+        if (!d) continue;
+        const kind = String(d.kind || '').toLowerCase();
+        if (['member', 'method', 'event', 'function'].includes(kind) && (d.memberof || d.memberofLongname)) {
+            const parent = d.memberof || (d.memberofLongname ? nodeByLongname.get(d.memberofLongname) : null);
+            if (parent && parent.href) {
+                d.href = `${parent.href}#${d.anchor}`;
+            } else {
+                d.href = fileFor(d);
+            }
+        } else {
+            d.href = fileFor(d);
+        }
+    }
+
     // Render index content (flat by-kind listing) separate from sidebar
-    const order = ['module', 'class', 'interface', 'mixin', 'namespace', 'method', 'member', 'typedef', 'enum', 'event'];
+    const order = kindOrder;
     const byKind = Object.fromEntries(order.map((k) => [k, []]));
     for (const d of docs) (byKind[d.kind] || (byKind[d.kind] = [])).push(d);
     const containerNav = order
     .filter((k) => (byKind[k] || []).length)
-    .map((k) => ({ kind: k, items: (byKind[k] || []).map((d) => ({ name: d.name || d.longname, href: fileFor(d) })) }));
+    .map((k) => ({ kind: k, items: (byKind[k] || []).map((d) => ({ name: d.name || d.longname, href: d.href })) }));
 
-    const indexHtml = views.render('container.tmpl', { title: 'Documentation', nav: containerNav });
-    fs.writeFileSync(path.join(outdir, 'index.html'), applyLayout(indexHtml, 'Documentation', navGroups, null), 'utf8');
+    // Prefer a user-provided index markdown file, then README.*, else the container listing
+    let indexTitle = 'Documentation';
+    let indexContentHtml = null;
+    try {
+        const idxRaw = (typeof tconf.index === 'string') ? tconf.index : null;
+        const cwd = env?.pwd || process.cwd();
+        const tryPaths = [];
+        if (idxRaw) tryPaths.push(path.isAbsolute(idxRaw) ? idxRaw : path.resolve(cwd, idxRaw));
+        tryPaths.push(
+            path.resolve(cwd, 'README.md'),
+            path.resolve(cwd, 'Readme.md'),
+            path.resolve(cwd, 'readme.md'),
+            path.resolve(cwd, 'README.markdown')
+        );
+        for (const pth of tryPaths) {
+            if (pth && nfs.existsSync(pth) && nfs.statSync(pth).isFile()) {
+                const md = nfs.readFileSync(pth, 'utf8');
+                // Title from first heading if present
+                const m = /^(?:\s|\uFEFF)*(#{1,6})\s+(.+)$/m.exec(md);
+                if (m) indexTitle = String(m[2]).trim();
+                // Inject markdown content as-is (no conversion)
+                indexContentHtml = md;
+                break;
+            }
+        }
+    } catch (_) {}
+    let writeCount = 0;
+    if (!indexContentHtml) {
+        const indexHtml = views.render('index.tmpl', { title: 'Documentation', nav: containerNav });
+        fs.writeFileSync(path.join(outdir, 'index.html'), applyLayout(indexHtml, indexTitle, navGroups, null), 'utf8');
+        writeCount++;
+    } else {
+        const rendered = markdownParser(indexContentHtml);
+        fs.writeFileSync(path.join(outdir, 'index.html'), applyLayout(rendered, indexTitle, navGroups, null), 'utf8');
+        writeCount++;
+    }
 
-    // Render a page per doclet
+    // Render a page per doclet (skip child members/methods/events that link to parent anchors)
     for (const d of docs) {
+        const kindLower = String(d.kind || '').toLowerCase();
+        const hasParent = !!(d.memberof || (d.memberofLongname && nodeByLongname.get(d.memberofLongname)));
+        if (['member', 'method', 'event', 'function'].includes(d.kind) && hasParent) {
+            // This symbol renders within its parent's page; skip standalone page
+            continue;
+        }
         const classKinds = [
             { title: 'Instance Members', key: 'instance_members' },
             { title: 'Static Members', key: 'static_members' },
@@ -421,7 +563,8 @@ exports.publish = function publish(data, opts) {
         const html = views.render('doc.tmpl', { doc: d, kinds });
         const out = path.join(outdir, fileFor(d));
         fs.writeFileSync(out, applyLayout(html, d.longname || d.name, navGroups, d.href), 'utf8');
+        writeCount++;
     }
 
-    console.log('[template] Wrote', 1 + docs.length, 'files to', outdir);
+    console.log('[template] Wrote', writeCount, 'files to', outdir);
 };

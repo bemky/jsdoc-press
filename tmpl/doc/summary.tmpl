@@ -1,8 +1,8 @@
-<a class="section-title" href="<?js= doc.href ?>">
-    <code><?js= this.partial('doc/signature.tmpl', { doc, compact: true }) ?></code>
+<a class="symbol-summary-title" href="<?js= doc.href ?>">
+    <?js if (this.showKindIcons) { ?>
+        <span class="icon-kind kind-<?js= doc.kind ?>"><?js= this.kindIcon(doc.kind) ?></span>
+    <?js } ?>
+    <code><?js= this.partial('doc/signature.tmpl', { doc }) ?></code>
 </a>
-<?js if (doc.classdesc) { ?>
-    <div class="symbol-description"><?js= doc.classdesc ?></div>
-<?js } else if (doc.description) { ?>
-    <div class="symbol-description"><?js= doc.description ?></div>
-<?js } ?>
+
+<?js= this.partial('doc/details.tmpl', { doc, depth: 2 }) ?>

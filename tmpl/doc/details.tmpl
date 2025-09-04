@@ -1,0 +1,100 @@
+<?js if (doc.classdesc) { ?>
+    <section class="description"><?js= doc.classdesc ?></section>
+<?js } else if (doc.description) { ?>
+    <section class="description"><?js= doc.description ?></section>
+<?js } ?>
+
+<?js if (doc.kind == 'class') { ?>
+    <section>
+        <h2>Constructor</h2>
+        <div class="symbol-title">
+            <code><?js= this.partial('doc/signature.tmpl', { doc, arguments: true, compact: true }) ?></code>
+        </div>
+        <?js doc?.params?.forEach(item => { ?>
+            <?js= this.partial('doc/parameter.tmpl', { p: item })?>
+        <?js }); ?>
+    </section>
+<?js } else if (doc.params && doc.params.length) { ?>
+    <section>
+        <h2>Parameters</h2>
+        <?js doc.params.forEach(p => { ?>
+            <?js= this.partial('doc/parameter.tmpl', { p })?>
+        <?js }); ?>
+    </section>
+<?js } ?>
+
+<?js if (doc.returns && doc.returns.length) { ?>
+    <section>
+        <h2>Returns</h2>
+        <?js doc.returns.forEach(r => { ?>
+            <div>
+                <?js if (r.type && r.type.names) { ?>
+                    <code class="clear">
+                        <?js r.type.names.forEach((name, index, arr) => {
+                            const typename = name.match(/\<(\w+)\>/)?.at(1) || name
+                            const href = this.linkTo(typename);
+                            if (href) {
+                                name = name.replace(typename, `<a href="${href}">${typename}</a>`)
+                            } else {
+                                name = this.htmlsafe(name)
+                            }
+                            ?>
+                            <?js= name ?>
+                            <?js= index == arr.length - 1 ? "" : "|" ?>
+                        <?js }) ?>
+                    </code>
+                <?js } ?>
+                <?js if (r.description) { ?>
+                <div class="symbol-description">
+                    <?js= r.description ?>
+                </div>
+                <?js } ?>
+            </div>
+        <?js }); ?>
+    </section>
+<?js } ?>
+
+<?js if (doc.examples && doc.examples.length) { ?>
+    <section>
+        <h2>Examples</h2>
+        <?js doc.examples.forEach(ex => { ?>
+            <?js= this.highlight(ex, 'javascript', {class: 'overflow-container code-block'}) ?>
+        <?js }); ?>
+    </section>
+<?js } ?>
+
+<?js if (doc.properties && doc.properties.length) { ?>
+    <section>
+        <h2>Properties</h2>
+        <?js doc.properties.forEach(prop => { ?>
+            <?js= this.partial('doc/parameter.tmpl', { p: prop })?>
+        <?js }); ?>
+    </section>
+<?js } ?>
+
+<?js if (doc.members && Object.keys(doc.members).length) { ?>
+    <?js var order = ['instance_members','static_members','instance_methods','static_methods','classes','interfaces','mixins','namespaces','members','methods','typedefs','events','enums'];
+    var keys = Object.keys(doc.members);
+    order.concat(keys.filter(k => order.indexOf(k) === -1)).forEach(k => {
+        var arr = doc.members[k];
+        if (!Array.isArray(arr) || !arr.length) return;
+    ?>
+        <section id="section-<?js= k ?>">
+            <h2><?js= this.kindLabel(k, {title: true, plural: true}) ?></h2>
+            <?js arr.forEach(item => { ?>
+                <?js if (['classes', 'modules'].includes(k)) { ?>
+                    <a class="symbol-summary-title" href="<?js= item.href ?>">
+                        <?js if (this.showKindIcons) { ?>
+                            <span class="icon-kind kind-<?js= item.kind ?>"><?js= this.kindIcon(item.kind) ?></span>
+                        <?js } ?>
+                        <code><?js= this.partial('doc/signature.tmpl', { doc: item, constructor: false }) ?></code>
+                    </a>
+                <?js } else { ?>
+                    <div class="symbol-summary <?js= k ?>" id="<?js= item.anchor ?>">
+                        <?js= this.partial('doc/summary.tmpl', { doc: item }) ?>
+                    </div>
+                <?js } ?>
+            <?js }); ?>
+        </section>
+    <?js }); ?>
+<?js } ?>

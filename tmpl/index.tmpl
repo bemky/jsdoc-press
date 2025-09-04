@@ -1,0 +1,29 @@
+<?js if (typeof content != undefined) { ?>
+    <?js= content ?>
+<?js } else { ?>
+    <header>
+        <h1><?js= title ?></h1>
+    </header>
+    <section>
+        <?js if (!nav || !nav.length) { ?>
+            <p>No documented symbols to display.</p>
+        <?js } ?>
+        <?js if (nav) { nav.forEach(group => { ?>
+            <h2 class="kind kind-color kind-<?js= group.kind ?>">
+                <?js= this.kindLabel(group.kind, true) ?>
+            </h2>
+            <?js (group.items || []).forEach(item => { ?>
+                <div>
+                    <?js if (this.showKindIcons) { ?>
+                        <span class="icon-kind kind-<?js= group.kind ?>">
+                            <?js= this.kindIcon(group.kind) ?>
+                        </span>&nbsp;
+                    <?js } ?>
+
+                    <a href="<?js= item.href ?>"><?js= item.name ?></a>
+                </div>
+            <?js }); ?>
+        <?js }); } ?>
+    </section>
+<?js } ?>
+

@@ -20,10 +20,12 @@
     "node": ">=14"
   },
   "scripts": {
-    "preview": "jsdoc -c preview.jsdoc.json"
+    "preview": "jsdoc -c preview.jsdoc.json",
+    "preview:watch": "nodemon --watch publish --watch static --watch preview-lib --watch preview-assets --watch tmpl --ext js,md,json,css,tmpl --exec \"npm run preview\""
   },
   "devDependencies": {
+    "highlight.js": "^11.9.0",
     "jsdoc": "^4.0.3",
-    "highlight.js": "^11.9.0"
+    "nodemon": "^3.1.10"
   }
 }

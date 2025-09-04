@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="color-scheme" content="dark light">
         <title><?js= title ?></title>
-        <link rel="stylesheet" href="/stylesheets/jsdoc-stock.css" />
+        <link rel="stylesheet" href="/stylesheets/jsdoc-press.css" />
         <?js if (stylesheets && stylesheets.length) { stylesheets.forEach(href => { ?>
             <link rel="stylesheet" href="<?js= href ?>" />
         <?js }); } ?>
@@ -13,7 +13,10 @@
     <body>
         <input type="checkbox" id="sm-nav-trigger" class="sm-nav-trigger" />
         <nav>
-            <a class="brand" href="./index.html">Docs</a>
+            <a class="brand" href="./index.html">
+                <?js= env.conf.templates.logo ? `<img src="${env.conf.templates.logo}"/>` : 'Docs' ?>
+            </a>
+            
             <?js if (navGroups && navGroups.length) { navGroups.forEach(group => { ?>
                 <div class="nav-group">
                     <div class="nav-kinds"><?js= this.kindLabel(group.kind, {plural: true, title: true}) ?></div>
@@ -52,7 +55,7 @@
             </label>
         </div>
         
-        <script src="/javascripts/jsdoc-stock.js"></script>
+        <script src="/javascripts/jsdoc-press.js"></script>
         <?js if (javascripts && javascripts.length) { javascripts.forEach(src => { ?>
             <script src="<?js= src ?>"></script>
         <?js }); } ?>
