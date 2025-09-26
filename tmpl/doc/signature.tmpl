@@ -14,6 +14,7 @@
     var optReturns = (typeof returns === 'boolean') ? returns : true;
     var optType = (typeof type === 'boolean') ? type : true;
     var optConstructor = (typeof constructor == 'boolean') ? constructor : true;
+    var optAugments = (typeof augments == 'boolean') ? augments : false;
 ?>
 <span class="signature">
     <?js if (optConstructor && doc.kind == "class") { ?>
@@ -33,6 +34,17 @@
             <span class="signature-param"><?js= p.name ?><?js= index == arr.length - 1 ? '' : ', ' ?></span>
         <?js }) ?>
         <span class="signature-punctuation">)</span>
+    <?js } else if (optAugments == true && doc.augments) { ?>
+        <span class="signature-extends">&nbsp;extends&nbsp;</span>
+        <?js doc.augments.forEach((name, index, arr) => {
+            const href = this.linkTo(name);
+            name = href ? `<a href="${href}">${name}</a>` : this.htmlsafe(name) ?>
+            
+            <span class="signature-augments">
+                <?js= name ?>
+                <?js= index == arr.length - 1 ? "" : "|" ?>
+            </span>
+        <?js }) ?>
     <?js } ?>
     
     <?js if (optArguments && ['class', 'function'].includes(doc.kind) && doc.returns) { ?>

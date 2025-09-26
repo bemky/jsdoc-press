@@ -24,7 +24,7 @@
     "preview:watch": "nodemon --watch publish --watch static --watch preview-lib --watch preview-assets --watch tmpl --ext js,md,json,css,tmpl --exec \"npm run preview\""
   },
   "devDependencies": {
-    "highlight.js": "^11.9.0",
+    "highlight.js": "^11.11.1",
     "jsdoc": "^4.0.3",
     "nodemon": "^3.1.10"
   }
