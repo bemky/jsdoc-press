@@ -82,11 +82,28 @@ Inject custom JavaScript and CSS on every page via `templates.javascripts` and `
 |stylesheets|Array<String>|Styles to inject; local paths copied to `assets/styles/`, remote URLs used as-is; rendered as `<link rel="stylesheet" />` in `head`.|[]|
 |cleanOutput|Boolean|Wipes destination folder before generating new files.|true|
 |showKindIcons|Boolean|Displays compact kind icons (F, C, etc.) in nav and pages.|true|
+|kindLabels|Object|Map singular kind names to custom labels used across navigation, subheadings, and headers; plural/title forms are derived automatically. Alias: `renameKinds`.|none|
 |templates|String|Path to directory of template overrides checked before built-in `tmpl/` (mirrors default structure).|none|
 |transformHtml|String,Array<String>|Path(s) to JS module(s) that export a function `(html, ctx) => string` (or `{ transform(html, ctx) }`) applied to every generated HTML file after layout. Useful for custom highlighting or post-processing.|none|
 |highlight|Boolean|Enable post-layout code block highlighting via highlight.js for all `<pre><code>` blocks.|true|
 
 Local paths (relative or absolute filesystem paths) are copied into the docs output under `assets/scripts/` and `assets/styles/`, and the corresponding URLs are rewritten. Remote URLs are used as-is. The `staticFiles` option copies your own files/folders directly into the destination root; for example, with `"staticFiles": "./public"` a file `./public/logo.svg` will be available at `logo.svg` and can be referenced by `templates.logo: "logo.svg"`.
+
+### Example: Rename kinds
+
+Rename one or more kinds globally (navigation groups, subheadings, headers) by setting `templates.kindLabels` (or `templates.renameKinds`). Plural and title-cased forms are handled automatically.
+
+```json
+{
+  "templates": {
+    "kindLabels": {
+      "tutorial": "guide"
+    }
+  }
+}
+```
+
+This renders the Tutorials group as “Guides” in the sidebar, tutorial subheadings as “Guides”, and the tutorial header label as “Guide”.
 
 ## Demo
 ![Demo Index](./preview-assets/images/demo-index.png?raw=true)

@@ -41,18 +41,19 @@ function kindLabel(kind, options={}) {
         static_member: 'static_property'
     };
     const k = String(singularize(kind) || '').toLowerCase();
-    let result = map[k] || k
-    if (!!options.plural) result = pluralize(result)
-    if (!!options.title) result = titleize(result)
-    return result
+    let result = map[k] || k;
+    if (!!options.plural) result = pluralize(result);
+    if (!!options.title) result = titleize(result);
+    return result;
 }
 
 /**
 * JSDoc entry point.
 * @param {import('taffydb').TaffyDB} data
 * @param {{destination: string}} opts
+* @param {import('jsdoc/tutorial').RootTutorial} tutorials
 */
-exports.publish = function publish(data, opts) {
+exports.publish = function publish(data, opts, tutorials) {
     const outdir = path.normalize(opts.destination || './docs');
     const tconf = env?.conf?.templates || {};
     // Read cleaning option (default: true) and wipe output directory if enabled
@@ -78,7 +79,19 @@ exports.publish = function publish(data, opts) {
         pluralize: pluralize,
         singularize: singularize,
         titleize: titleize,
-        kindLabel: kindLabel,
+        kindLabel: (function(){
+            const renameMap = (tconf && tconf.kindLabels && typeof tconf.kindLabels === 'object')
+                ? tconf.kindLabels
+                : ((tconf && tconf.renameKinds && typeof tconf.renameKinds === 'object') ? tconf.renameKinds : null);
+            return function(kind, options={}) {
+                // get a base label in singular, lowercase
+                const base = kindLabel(kind, { plural: false, title: false });
+                let out = (renameMap && typeof renameMap[base] === 'string' && renameMap[base]) ? renameMap[base] : base;
+                if (options.plural) out = pluralize(out);
+                if (options.title) out = titleize(out);
+                return out;
+            };
+        })(),
         find: function(spec) { return this.findAll(spec).at(0) },
         htmlsafe: helper.htmlsafe,
         findAll: spec => helper.find(data, spec),
@@ -103,7 +116,8 @@ exports.publish = function publish(data, opts) {
             if (map[k]) return map[k];
             // fallback: first letter uppercase
             return (k[0] || '?').toUpperCase();
-        }
+        },
+        tutorialUrl: function(name) { try { return helper.tutorialToUrl(name); } catch (_) { return ''; } }
     });
     const partialWas = views.partial
     views.partial = function (template, options) {
@@ -285,8 +299,11 @@ exports.publish = function publish(data, opts) {
     }
 
     // Prepare data
+    // console debug removed
     const docs = data().get().filter((d) => !d.undocumented && d.longname && d.kind);
 
+    // Expose tutorials to helper so inline {@tutorial} links resolve
+    try { helper.setTutorials(tutorials); } catch (_) {}
     // Simple filename map to make stable, unique URLs
     const filenameMap = new Map();
     const taken = new Set();
@@ -517,6 +534,38 @@ exports.publish = function publish(data, opts) {
 
     // Doclets are already augmented in-place via makeNode; no further attachment required.
 
+    // Build Tutorials nav group if tutorials are provided
+    function buildTutorialItem(node) {
+        if (!node) return null;
+        const name = node.title || node.name;
+        let href = '';
+        try { href = helper.tutorialToUrl(node.name); } catch (_) { href = ''; }
+        const item = { name, href, kind: 'tutorial', longname: `tutorial:${node.name}`, memberof: null, members: {} };
+        if (Array.isArray(node.children) && node.children.length) {
+            item.members.tutorials = node.children.map(buildTutorialItem).filter(Boolean);
+        }
+        return item;
+    }
+    if (tutorials && Array.isArray(tutorials.children) && tutorials.children.length) {
+        const tItems = tutorials.children.map(buildTutorialItem).filter(Boolean);
+        if (tItems.length) {
+            const desiredIndex = orderIndex.has('tutorial') ? orderIndex.get('tutorial') : -1;
+            if (desiredIndex >= 0) {
+                // Insert tutorials according to nav.order position
+                let insertAt = navGroups.length;
+                for (let i = 0; i < navGroups.length; i++) {
+                    const g = navGroups[i];
+                    const gi = orderIndex.has(g.kind) ? orderIndex.get(g.kind) : 999;
+                    if (desiredIndex < gi) { insertAt = i; break; }
+                }
+                navGroups.splice(insertAt, 0, { kind: 'tutorial', items: tItems });
+            } else {
+                // Fallback: append at end if no position specified
+                navGroups.push({ kind: 'tutorial', items: tItems });
+            }
+        }
+    }
+
     // Update hrefs for members/methods/events to point to parent page anchors when applicable
     for (const d of docs) {
         if (!d) continue;
@@ -612,6 +661,33 @@ exports.publish = function publish(data, opts) {
         fs.writeFileSync(out, applyLayout(html, d.longname || d.name, navGroups, d.href, { page: 'doc', doc: d }), 'utf8');
         writeCount++;
     }
+
+    // Render tutorials (and children) into standalone pages
+    function renderTutorial(node) {
+        if (!node) return;
+        try {
+            const pageTitle = `Tutorial: ${node.title || node.name}`;
+            const data = {
+                title: pageTitle,
+                header: node.title || node.name,
+                content: (typeof node.parse === 'function') ? node.parse() : (node.content || ''),
+                children: Array.isArray(node.children) ? node.children : [],
+                tutorialUrl: (name) => { try { return helper.tutorialToUrl(name); } catch (_) { return ''; } }
+            };
+            const file = (function(){ try { return helper.tutorialToUrl(node.name); } catch(_) { return null; } })();
+            if (!file) return;
+            let html = views.render('tutorial.tmpl', data);
+            try { html = helper.resolveLinks(html); } catch (_) {}
+            const full = path.join(outdir, file);
+            fs.writeFileSync(full, applyLayout(html, pageTitle, navGroups, file, { page: 'tutorial', tutorial: node }), 'utf8');
+            writeCount++;
+            if (Array.isArray(node.children)) node.children.forEach(renderTutorial);
+        } catch (e) {
+            try { console.warn('[template] failed to render tutorial', node && node.name, e && e.message); } catch(_) {}
+        }
+    }
+    const childList = (tutorials && Array.isArray(tutorials.children)) ? tutorials.children.slice() : [];
+    childList.forEach(renderTutorial);
 
     console.log('[template] Wrote', writeCount, 'files to', outdir);
 };

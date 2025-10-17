@@ -1,0 +1,21 @@
+<article class="doc">
+    <header>
+        <div class="kind kind-color kind-tutorial"><?js= this.kindLabel('tutorial', { title: true }) ?></div>
+        <h1><?js= header ?></h1>
+    </header>
+
+    <section class="details">
+        <?js= content ?>
+    </section>
+
+    <?js if (children && children.length) { ?>
+        <section class="children">
+            <h2>Further Reading</h2>
+            <ul>
+                <?js children.forEach(function(child){ ?>
+                    <li><a href="<?js= tutorialUrl(child.name) ?>"><?js= child.title || child.name ?></a></li>
+                <?js }); ?>
+            </ul>
+        </section>
+    <?js } ?>
+</article>

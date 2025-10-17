@@ -1,6 +1,6 @@
 <li>
     <a class="nav-item <?js= activeHref == href ? 'active' : '' ?>" href="<?js= href ?>">
-        <?js if (this.showKindIcons) { ?>
+        <?js if (this.showKindIcons && kind !== 'tutorial') { ?>
             <span class="icon-kind kind-<?js= kind ?>"><?js= this.kindIcon(kind) ?></span>
         <?js } ?>
         <?js= name ?>

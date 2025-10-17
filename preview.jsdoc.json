@@ -12,11 +12,18 @@
     "destination": "./preview",
     "encoding": "utf8",
     "recurse": true,
-    "template": "."
+    "template": ".",
+    "tutorials": "preview-lib/tutorials"
   },
   "templates": {
     "default": {
       "includeDate": false
+    },
+    "kindLabels": {
+      "tutorial": "guide"
+    },
+    "nav": {
+      "order": ["module", "class", "tutorial", "interface", "mixin", "namespace", "method", "member", "typedef", "enum", "event"]
     },
     "javascripts": [
       "./preview-assets/scripts/custom.js"
