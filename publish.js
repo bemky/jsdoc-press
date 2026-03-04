@@ -235,6 +235,8 @@ exports.publish = function publish(data, opts, tutorials) {
 
     function runHtmlTransforms(html, context) {
         let out = String(html ?? '');
+        // Resolve {@link}, {@linkcode}, {@linkplain}, {@tutorial} inline tags
+        try { out = helper.resolveLinks(out); } catch (_) {}
         // Built-in highlighting pass across the full document
         out = highlightAllCodeBlocks(out);
         for (const fn of htmlTransformers) {
@@ -582,6 +584,13 @@ exports.publish = function publish(data, opts, tutorials) {
         }
     }
 
+    // Register all doclet URLs with JSDoc's helper so {@link} tags resolve
+    for (const d of docs) {
+        if (d && d.longname && d.href) {
+            helper.registerLink(d.longname, d.href);
+        }
+    }
+
     // Render index content (flat by-kind listing) separate from sidebar
     const order = kindOrder;
     const byKind = Object.fromEntries(order.map((k) => [k, []]));
@@ -677,7 +686,6 @@ exports.publish = function publish(data, opts, tutorials) {
             const file = (function(){ try { return helper.tutorialToUrl(node.name); } catch(_) { return null; } })();
             if (!file) return;
             let html = views.render('tutorial.tmpl', data);
-            try { html = helper.resolveLinks(html); } catch (_) {}
             const full = path.join(outdir, file);
             fs.writeFileSync(full, applyLayout(html, pageTitle, navGroups, file, { page: 'tutorial', tutorial: node }), 'utf8');
             writeCount++;
