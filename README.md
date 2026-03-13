@@ -77,6 +77,8 @@ Inject custom JavaScript and CSS on every page via `templates.javascripts` and `
 |staticFiles|String,Array<String>|Path(s) to a file or directory to copy into the destination folder. Directories copy recursively and preserve structure.|none|
 |nav.order|Array<String>|Order of kinds in the sidebar and index. Missing kinds are appended in the default order.|`[module, class, interface, mixin, namespace, method, member, typedef, enum, event]`|
 |nav.exclude|Array<String>|Kinds to hide from the sidebar and index navigation.|none|
+|details.order|Array<String>|Order of detail sections on symbol pages. Missing sections are appended in the default order.|`[description, params, returns, examples, properties, members, tutorials, see, remarks]`|
+|details.exclude|Array<String>|Detail sections to hide from symbol pages.|none|
 |footer|Boolean,String|`false` hides footer; `true` renders default; a string renders as HTML.|true|
 |javascripts|Array<String>|Scripts to inject; local paths copied to `assets/scripts/`, remote URLs used as-is; rendered as `<script src="..."></script>` before `</body>`.|[]|
 |stylesheets|Array<String>|Styles to inject; local paths copied to `assets/styles/`, remote URLs used as-is; rendered as `<link rel="stylesheet" />` in `head`.|[]|

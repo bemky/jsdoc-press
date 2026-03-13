@@ -136,7 +136,25 @@ exports.publish = function publish(data, opts, tutorials) {
         markdown: markdownParser,
         tutorialUrl: function(name) { try { return helper.tutorialToUrl(name); } catch (_) { return ''; } },
         fs: nfs,
-        pathModule: path
+        pathModule: path,
+        detailsSections: (function() {
+            const defaultOrder = ['description', 'params', 'returns', 'examples', 'properties', 'members', 'tutorials', 'see', 'remarks'];
+            const userOrder = Array.isArray(tconf?.details?.order)
+                ? tconf.details.order.filter(k => typeof k === 'string').map(s => String(s).toLowerCase())
+                : null;
+            const exclude = new Set(
+                (Array.isArray(tconf?.details?.exclude) ? tconf.details.exclude : [])
+                    .filter(k => typeof k === 'string').map(s => String(s).toLowerCase())
+            );
+            let order;
+            if (userOrder) {
+                const remaining = defaultOrder.filter(k => !userOrder.includes(k));
+                order = [...userOrder, ...remaining];
+            } else {
+                order = defaultOrder;
+            }
+            return order.filter(k => !exclude.has(k));
+        })()
     });
     const partialWas = views.partial
     views.partial = function (template, options) {

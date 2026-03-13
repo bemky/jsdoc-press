@@ -1,9 +1,3 @@
-<?js= this.partial('doc/details/description.tmpl', { doc }) ?>
-<?js= this.partial('doc/details/params.tmpl', { doc }) ?>
-<?js= this.partial('doc/details/returns.tmpl', { doc }) ?>
-<?js= this.partial('doc/details/examples.tmpl', { doc }) ?>
-<?js= this.partial('doc/details/properties.tmpl', { doc }) ?>
-<?js= this.partial('doc/details/members.tmpl', { doc }) ?>
-<?js= this.partial('doc/details/tutorials.tmpl', { doc }) ?>
-<?js= this.partial('doc/details/see.tmpl', { doc }) ?>
-<?js= this.partial('doc/details/remarks.tmpl', { doc }) ?>
+<?js this.detailsSections.forEach(section => { ?>
+    <?js= this.partial('doc/details/' + section + '.tmpl', { doc }) ?>
+<?js }); ?>
