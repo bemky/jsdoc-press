@@ -1,0 +1,16 @@
+<?js if (doc.examples && doc.examples.length) { ?>
+    <section>
+        <h2>Examples</h2>
+        <?js doc.examples.forEach(ex => { ?>
+            <div class="example">
+            <?js var captionMatch = String(ex).match(/^\s*<caption>([\s\S]*?)<\/caption>/); ?>
+            <?js if (captionMatch) { ?>
+                <div class="example-caption"><?js= captionMatch[1] ?></div>
+                <pre><code><?js= String(ex).slice(captionMatch[0].length).trim() ?></code></pre>
+            <?js } else { ?>
+                <pre><code><?js= ex ?></code></pre>
+            <?js } ?>
+            </div>
+        <?js }); ?>
+    </section>
+<?js } ?>

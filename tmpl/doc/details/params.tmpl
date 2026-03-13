@@ -1,0 +1,18 @@
+<?js if (doc.kind == 'class') { ?>
+    <section>
+        <h2>Constructor</h2>
+        <div class="symbol-title">
+            <code><?js= this.partial('doc/signature.tmpl', { doc, arguments: true, compact: true }) ?></code>
+        </div>
+        <?js doc?.params?.forEach(item => { ?>
+            <?js= this.partial('doc/parameter.tmpl', { p: item })?>
+        <?js }); ?>
+    </section>
+<?js } else if (doc.params && doc.params.length) { ?>
+    <section>
+        <h2>Parameters</h2>
+        <?js doc.params.forEach(p => { ?>
+            <?js= this.partial('doc/parameter.tmpl', { p })?>
+        <?js }); ?>
+    </section>
+<?js } ?>

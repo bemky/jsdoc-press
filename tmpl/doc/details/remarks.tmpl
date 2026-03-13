@@ -1,0 +1,9 @@
+<?js var remarks = (doc.tags || []).filter(t => t.title === 'remarks').map(t => t.text || t.value).filter(Boolean); ?>
+<?js if (remarks.length) { ?>
+    <section>
+        <h2>Notes</h2>
+        <?js remarks.forEach(note => { ?>
+            <div class="remarks"><?js= this.markdown(note) ?></div>
+        <?js }); ?>
+    </section>
+<?js } ?>

@@ -1,0 +1,10 @@
+<?js if (navGroups && navGroups.length) { navGroups.forEach(group => { ?>
+    <div class="nav-group">
+        <div class="nav-kinds"><?js= this.kindLabel(group.kind, {plural: true, title: true}) ?></div>
+        <ul class="nav-tree">
+            <?js (group.items || []).forEach(item => { ?>
+                <?js= this.partial('navitem.tmpl', Object.assign({ activeHref: (typeof activeHref !== 'undefined' ? activeHref : null) }, item)) ?>
+            <?js }); ?>
+        </ul>
+    </div>
+<?js }); } ?>

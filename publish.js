@@ -97,8 +97,12 @@ exports.publish = function publish(data, opts, tutorials) {
         findAll: spec => helper.find(data, spec),
         conf: (env?.conf) ? env.conf : {},
         showKindIcons,
-        kindIcon: function(kind) {
-            const map = {
+        kindIcon: (function() {
+            const iconMap = (tconf && tconf.kindIcons && typeof tconf.kindIcons === 'object')
+                ? tconf.kindIcons : null;
+            const iconPath = (tconf && typeof tconf.kindIcons === 'string')
+                ? tconf.kindIcons : null;
+            const defaultMap = {
                 // core kinds
                 'function': 'F',
                 'method': 'F',
@@ -112,12 +116,27 @@ exports.publish = function publish(data, opts, tutorials) {
                 'event': 'E',
                 'module': 'M'
             };
-            const k = String(kind || '').toLowerCase();
-            if (map[k]) return map[k];
-            // fallback: first letter uppercase
-            return (k[0] || '?').toUpperCase();
-        },
-        tutorialUrl: function(name) { try { return helper.tutorialToUrl(name); } catch (_) { return ''; } }
+            return function(kind) {
+                const k = String(kind || '').toLowerCase();
+                // If kindIcons is a string pattern, use it as a path template
+                if (iconPath) {
+                    const src = iconPath.replace(/\{kind\}/g, k);
+                    return '<img src="' + helper.htmlsafe(src) + '" alt="' + helper.htmlsafe(k) + '" class="kind-icon-img" />';
+                }
+                // If kindIcons is an object, look up per-kind overrides
+                if (iconMap && typeof iconMap[k] === 'string') {
+                    const src = iconMap[k];
+                    return '<img src="' + helper.htmlsafe(src) + '" alt="' + helper.htmlsafe(k) + '" class="kind-icon-img" />';
+                }
+                // Default: single letter
+                if (defaultMap[k]) return defaultMap[k];
+                return (k[0] || '?').toUpperCase();
+            };
+        })(),
+        markdown: markdownParser,
+        tutorialUrl: function(name) { try { return helper.tutorialToUrl(name); } catch (_) { return ''; } },
+        fs: nfs,
+        pathModule: path
     });
     const partialWas = views.partial
     views.partial = function (template, options) {
@@ -131,7 +150,7 @@ exports.publish = function publish(data, opts, tutorials) {
             : path.resolve(env?.pwd || process.cwd(), customDirRaw);
             const overridePath = path.join(overrideBase, template);
             if (fs.existsSync(overridePath)) {
-                template = overrideBase
+                template = overridePath
             }
         }
         let result = partialWas.call(this, template, options)
@@ -698,4 +717,20 @@ exports.publish = function publish(data, opts, tutorials) {
     childList.forEach(renderTutorial);
 
     console.log('[template] Wrote', writeCount, 'files to', outdir);
+
+    // Run afterBuild scripts if configured
+    const afterBuild = tconf.afterBuild;
+    if (afterBuild) {
+        const scripts = Array.isArray(afterBuild) ? afterBuild : [afterBuild];
+        const { execSync } = require('child_process');
+        for (const script of scripts) {
+            if (typeof script !== 'string') continue;
+            console.log('[template] Running afterBuild:', script);
+            try {
+                execSync(script, { stdio: 'inherit', cwd: env?.pwd || process.cwd() });
+            } catch (e) {
+                console.warn('[template] afterBuild failed:', e.message);
+            }
+        }
+    }
 };

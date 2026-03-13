@@ -1,0 +1,30 @@
+<?js if (doc.returns && doc.returns.length) { ?>
+    <section>
+        <h2>Returns</h2>
+        <?js doc.returns.forEach(r => { ?>
+            <div>
+                <?js if (r.type && r.type.names) { ?>
+                    <code class="clear">
+                        <?js r.type.names.forEach((name, index, arr) => {
+                            const typename = name.match(/\<(\w+)\>/)?.at(1) || name
+                            const href = this.linkTo(typename);
+                            if (href) {
+                                name = name.replace(typename, `<a href="${href}">${typename}</a>`)
+                            } else {
+                                name = this.htmlsafe(name)
+                            }
+                            ?>
+                            <?js= name ?>
+                            <?js= index == arr.length - 1 ? "" : "|" ?>
+                        <?js }) ?>
+                    </code>
+                <?js } ?>
+                <?js if (r.description) { ?>
+                <div class="symbol-description">
+                    <?js= r.description ?>
+                </div>
+                <?js } ?>
+            </div>
+        <?js }); ?>
+    </section>
+<?js } ?>

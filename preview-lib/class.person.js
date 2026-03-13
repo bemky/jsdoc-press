@@ -6,6 +6,7 @@ class Person {
    * Create a person.
    * @param {string} name - Person's name.
    * @param {number} [age] - Optional age.
+   * @remarks Age must be a **positive integer** if provided. Passing a `negative` value will not throw but may cause unexpected behavior in age-dependent methods like {@link Person#greet}.
    */
   constructor(name, age) {
     /** @type {string} */
@@ -70,8 +71,7 @@ class Person {
    * @param {Object<string, *>} [details.metadata] - Arbitrary metadata by key.
    * @param {...string} agenda - One or more agenda item titles.
    * @returns {{ id: string, when: Date, location: string, attendees: number, agenda: string[] }} Summary of the planned event.
-   * @example
-   * // Using an ISO date string and Person attendees
+   * @example <caption>Using an ISO date string and Person attendees</caption>
    * const alice = new Person('Alice', 30);
    * const summary = alice.planEvent('2025-10-01T10:00:00Z', {
    *   location: 'Conference Room A',

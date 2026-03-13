@@ -1,0 +1,29 @@
+<?js if (doc.members && Object.keys(doc.members).length) { ?>
+    <?js var order = ['instance_members','static_members','instance_methods','static_methods','classes','interfaces','mixins','namespaces','members','methods','typedefs','events','enums'];
+    var keys = Object.keys(doc.members);
+    order.concat(keys.filter(k => order.indexOf(k) === -1)).forEach(k => {
+        var arr = doc.members[k];
+        if (!Array.isArray(arr) || !arr.length) return;
+    ?>
+        <section id="section-<?js= k ?>">
+            <h2 class="section-title kind-<?js= this.singularize(k) ?>"><?js= this.kindLabel(k, {title: true, plural: true}) ?></h2>
+            <?js arr.forEach(item => { ?>
+                <?js if (['classes', 'modules'].includes(k)) { ?>
+                    <div class="symbol-summary-title">
+                        <?js if (this.showKindIcons) { ?>
+                            <span class="icon-kind kind-<?js= item.kind ?>">
+                                <?js= this.kindIcon(item.kind) ?>
+                            </span>
+                            &nbsp;
+                        <?js } ?>
+                        <a href="<?js= item.href ?>"><code><?js= this.partial('doc/signature.tmpl', { doc: item, constructor: false }) ?></code></a>
+                    </div>
+                <?js } else { ?>
+                    <div class="symbol-summary <?js= k ?>" id="<?js= item.anchor ?>">
+                        <?js= this.partial('doc/summary.tmpl', { doc: item }) ?>
+                    </div>
+                <?js } ?>
+            <?js }); ?>
+        </section>
+    <?js }); ?>
+<?js } ?>

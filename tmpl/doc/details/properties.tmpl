@@ -1,0 +1,8 @@
+<?js if (doc.properties && doc.properties.length) { ?>
+    <section>
+        <h2>Properties</h2>
+        <?js doc.properties.forEach(prop => { ?>
+            <?js= this.partial('doc/parameter.tmpl', { p: prop })?>
+        <?js }); ?>
+    </section>
+<?js } ?>

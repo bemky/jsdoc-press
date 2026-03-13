@@ -1,0 +1,10 @@
+<?js if (doc.see && doc.see.length) { ?>
+    <section>
+        <h2>See Also</h2>
+        <ul class="see-also">
+            <?js doc.see.forEach(s => { ?>
+                <li><?js= s ?></li>
+            <?js }); ?>
+        </ul>
+    </section>
+<?js } ?>

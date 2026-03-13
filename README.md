@@ -83,9 +83,11 @@ Inject custom JavaScript and CSS on every page via `templates.javascripts` and `
 |cleanOutput|Boolean|Wipes destination folder before generating new files.|true|
 |showKindIcons|Boolean|Displays compact kind icons (F, C, etc.) in nav and pages.|true|
 |kindLabels|Object|Map singular kind names to custom labels used across navigation, subheadings, and headers; plural/title forms are derived automatically. Alias: `renameKinds`.|none|
-|templates|String|Path to directory of template overrides checked before built-in `tmpl/` (mirrors default structure).|none|
+|kindIcons|String,Object|String: path pattern with `{kind}` placeholder (e.g. `"images/icons/{kind}.svg"`) renders `<img>` tags for all kinds. Object: map kind names to individual icon paths. Unmapped kinds fall back to the default letter.|none|
+|templates|String|Path to directory of template overrides checked before built-in `tmpl/` (mirrors default structure). See [Template Overrides](#template-overrides).|none|
 |transformHtml|String,Array<String>|Path(s) to JS module(s) that export a function `(html, ctx) => string` (or `{ transform(html, ctx) }`) applied to every generated HTML file after layout. Useful for custom highlighting or post-processing.|none|
 |highlight|Boolean|Enable post-layout code block highlighting via highlight.js for all `<pre><code>` blocks.|true|
+|afterBuild|String,Array<String>|Shell command(s) to run after all files have been written. Executed in order from the project working directory.|none|
 
 Local paths (relative or absolute filesystem paths) are copied into the docs output under `assets/scripts/` and `assets/styles/`, and the corresponding URLs are rewritten. Remote URLs are used as-is. The `staticFiles` option copies your own files/folders directly into the destination root; for example, with `"staticFiles": "./public"` a file `./public/logo.svg` will be available at `logo.svg` and can be referenced by `templates.logo: "logo.svg"`.
 
@@ -104,6 +106,56 @@ Rename one or more kinds globally (navigation groups, subheadings, headers) by s
 ```
 
 This renders the Tutorials group as “Guides” in the sidebar, tutorial subheadings as “Guides”, and the tutorial header label as “Guide”.
+
+### Template Overrides
+
+Override any built-in template partial by setting `templates.templates` to a directory that mirrors the `tmpl/` structure. Files found in your directory are used instead of the defaults.
+
+```json
+{
+  “templates”: {
+    “templates”: “./my-templates”
+  }
+}
+```
+
+Built-in partials available for override:
+
+| partial | description | data passed |
+|---------|-------------|-------------|
+| `layout.tmpl` | Base HTML shell (head, nav, content, footer) | `content`, `title`, `navGroups`, `activeHref`, `javascripts`, `stylesheets` |
+| `nav.tmpl` | Sidebar navigation groups and items | `navGroups`, `activeHref` |
+| `navitem.tmpl` | Single nav item (recursive for nested members) | node fields (`name`, `href`, `kind`, `members`, …) + `activeHref` |
+| `doc.tmpl` | Symbol documentation page | `doc` (the doclet node) |
+| `doc/details.tmpl` | All detail sections for a symbol (delegates to partials below) | `doc` |
+| `doc/details/description.tmpl` | Description / class description | `doc` |
+| `doc/details/params.tmpl` | Constructor (for classes) or Parameters | `doc` |
+| `doc/details/returns.tmpl` | Returns | `doc` |
+| `doc/details/examples.tmpl` | Examples (with `<caption>` support) | `doc` |
+| `doc/details/properties.tmpl` | Properties | `doc` |
+| `doc/details/members.tmpl` | Members, methods, events, etc. | `doc` |
+| `doc/details/tutorials.tmpl` | Tutorials | `doc` |
+| `doc/details/see.tmpl` | See Also | `doc` |
+| `doc/details/remarks.tmpl` | Notes (`@remarks`) | `doc` |
+| `index.tmpl` | Landing/index page | `title`, `nav` (ordered container groups) |
+| `tutorial.tmpl` | Tutorial page | `title`, `header`, `content`, `children` |
+
+For example, to provide a completely custom sidebar, create `./my-templates/nav.tmpl`. The default `nav.tmpl` renders each group with kind labels and the `navitem.tmpl` partial:
+
+```html
+<?js if (navGroups && navGroups.length) { navGroups.forEach(group => { ?>
+    <div class=”nav-group”>
+        <div class=”nav-kinds”><?js= this.kindLabel(group.kind, {plural: true, title: true}) ?></div>
+        <ul class=”nav-tree”>
+            <?js (group.items || []).forEach(item => { ?>
+                <?js= this.partial('navitem.tmpl', Object.assign({ activeHref }, item)) ?>
+            <?js }); ?>
+        </ul>
+    </div>
+<?js }); } ?>
+```
+
+View helpers available via `this`: `kindLabel`, `kindIcon`, `markdown`, `pluralize`, `singularize`, `titleize`, `linkTo`, `find`, `findAll`, `htmlsafe`, `tutorialUrl`, `partial`, `conf`, `fs` (Node.js `fs` module), `pathModule` (Node.js `path` module).
 
 ## Demo
 ![Demo Index](./preview-assets/images/demo-index.png?raw=true)
