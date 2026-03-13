@@ -14,7 +14,7 @@ class Person {
     /** @type {number|undefined} */
     this.age = age;
   }
-  
+
  /**
   * Show All Humans
   * @returns {Array.<Person>} An array of Person instances.
@@ -26,6 +26,13 @@ class Person {
        new Person('Carol', 40)
      ];
  }
+
+/**
+   * World this class is from
+   * @type {string}
+   * @static
+   */
+ static world = 'Earth'
 
   /**
    * A computed identifier for this person.
@@ -42,7 +49,7 @@ class Person {
   greet() {
     return `Hello, I'm ${this.name}.`;
   }
-  
+
   /**
    * Reloads the record from the server
    * @param {ReloadOptions} [options={}] - Options for reloading
@@ -54,9 +61,9 @@ class Person {
       if (!this.constructor.connection) {
           throw new Errors.ConnectionNotEstablished();
       }
-      
+
       if (this.isNewRecord()) { return }
-      
+
       return await this.constructor.connection.get(this.url(), this.optionsForSync('reload', options));
   }
 

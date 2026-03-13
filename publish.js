@@ -340,6 +340,16 @@ exports.publish = function publish(data, opts, tutorials) {
     // Prepare data
     // console debug removed
     const docs = data().get().filter((d) => !d.undocumented && d.longname && d.kind);
+    // Workaround: JSDoc parses static class fields as instance scope even with @static tag
+    // https://github.com/jsdoc/jsdoc/issues/2144 — fix: https://github.com/jsdoc/jsdoc/pull/2145
+    for (const d of docs) {
+        if (d.scope === 'instance' && d.comment && /@static\b/.test(d.comment)) {
+            d.scope = 'static';
+            if (d.longname && d.memberof) {
+                d.longname = d.memberof + '.' + d.name;
+            }
+        }
+    }
 
     // Expose tutorials to helper so inline {@tutorial} links resolve
     try { helper.setTutorials(tutorials); } catch (_) {}
