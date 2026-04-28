@@ -77,6 +77,7 @@ Inject custom JavaScript and CSS on every page via `templates.javascripts` and `
 |staticFiles|String,Array<String>|Path(s) to a file or directory to copy into the destination folder. Directories copy recursively and preserve structure.|none|
 |nav.order|Array<String>|Order of kinds in the sidebar and index. Missing kinds are appended in the default order.|`[module, class, interface, mixin, namespace, method, member, typedef, enum, event]`|
 |nav.exclude|Array<String>|Kinds to hide from the sidebar and index navigation.|none|
+|nav.excludeNames|Array<String>|Symbol names (or longnames) to hide from the sidebar navigation. Pages are still generated and `{@link}` references continue to resolve, so this is useful for hiding internal base classes while keeping them linkable from subclass pages.|none|
 |details.order|Array<String>|Order of detail sections on symbol pages. Missing sections are appended in the default order.|`[description, params, returns, examples, properties, members, tutorials, see, remarks]`|
 |details.exclude|Array<String>|Detail sections to hide from symbol pages.|none|
 |footer|Boolean,String|`false` hides footer; `true` renders default; a string renders as HTML.|true|
