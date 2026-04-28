@@ -390,6 +390,11 @@ exports.publish = function publish(data, opts, tutorials) {
                 .map(s => singularize(s))
             : []
     );
+    const excludeNames = new Set(
+        Array.isArray(tconf?.nav?.excludeNames)
+            ? tconf.nav.excludeNames.filter(n => typeof n === 'string')
+            : []
+    );
     const kindOrder = (() => {
         if (!userKindOrder || !userKindOrder.length) return defaultKindOrder.slice();
         const seen = new Set();
@@ -575,6 +580,7 @@ exports.publish = function publish(data, opts, tutorials) {
         const seen = new Set();
         const unique = items.filter((it) => {
             if (!it || seen.has(it.longname)) return false;
+            if (excludeNames.has(it.longname) || excludeNames.has(it.name)) return false;
             seen.add(it.longname);
             return true;
         });
@@ -643,8 +649,13 @@ exports.publish = function publish(data, opts, tutorials) {
     const byKind = Object.fromEntries(order.map((k) => [k, []]));
     for (const d of docs) (byKind[d.kind] || (byKind[d.kind] = [])).push(d);
     const containerNav = order
-    .filter((k) => (byKind[k] || []).length)
-    .map((k) => ({ kind: k, items: (byKind[k] || []).map((d) => ({ name: d.name || d.longname, href: d.href })) }));
+    .map((k) => ({
+        kind: k,
+        items: (byKind[k] || [])
+            .filter((d) => !excludeNames.has(d.longname) && !excludeNames.has(d.name))
+            .map((d) => ({ name: d.name || d.longname, href: d.href }))
+    }))
+    .filter((g) => g.items.length);
 
     // Prefer a user-provided index markdown file, then README.*, else the container listing
     let indexTitle = 'Documentation';
