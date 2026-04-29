@@ -1,4 +1,4 @@
-# JSDoc Press
+<img src="https://raw.githubusercontent.com/bemky/jsdoc-press/master/logo.svg" width="300" alt="JSDOC-PRESS">
 
 **Purpose:** A minimal, clean JSDoc HTML template to use via `opts.template`.
 
@@ -49,7 +49,7 @@ Inject custom JavaScript and CSS on every page via `templates.javascripts` and `
     "templates": {
       "cleanOutput": true,
       "index": "./README.md",
-      "staticFiles": "./public", 
+      "staticFiles": "./public",
       "nav": {
         "order": ["module", "class", "namespace", "interface", "mixin", "method", "member", "typedef", "enum", "event"],
         "exclude": ["typedef", "event"]
@@ -69,7 +69,7 @@ Inject custom JavaScript and CSS on every page via `templates.javascripts` and `
     }
   }
   ```
-  
+
 |option|type|description|default|
 |------|----|------------|-------|
 |logo|String|Path to logo in output (copy it via `staticFiles`).|none|
